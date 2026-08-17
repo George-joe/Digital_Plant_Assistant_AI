@@ -2,7 +2,7 @@
 community.py — Community feed, leaderboard, XP system, and Marketplace stub.
 """
 from flask import Blueprint, request, jsonify, session, current_app
-from routes.auth import get_authenticated_user
+from utils.helpers import get_authenticated_user
 from database.extensions import db
 from models.community import CommunityPost, PostLike, PostComment
 from models.user import User

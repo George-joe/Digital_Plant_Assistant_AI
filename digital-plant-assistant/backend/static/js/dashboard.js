@@ -299,42 +299,68 @@ document.addEventListener("DOMContentLoaded", () => {
 
   addToGardenBtn?.addEventListener("click", async () => {
     if (!detectedData) return;
+
+    const originalText = addToGardenBtn.innerHTML;
+    addToGardenBtn.disabled = true;
+    addToGardenBtn.innerHTML = '<span>Saving to Garden...</span>';
+
     try {
-      const nickname  = document.getElementById("nicknameInput")?.value;
-      const location  = document.getElementById("locationInput")?.value;
-      const potSize   = document.getElementById("potSizeInput")?.value;
+      const activeUser = JSON.parse(localStorage.getItem("user")) || user;
+      const uid = (activeUser && activeUser.id) ? activeUser.id : (localStorage.getItem("access_token") || localStorage.getItem("userId") || 1);
+
+      const nickname  = document.getElementById("nicknameInput")?.value || "";
+      const location  = document.getElementById("locationInput")?.value || "Indoor";
+      const potSize   = document.getElementById("potSizeInput")?.value || "Medium";
       
       const payload = {
-          user_id: user.id,
-          name: detectedData.name,
-          scientific: detectedData.scientific,
-          confidence: detectedData.confidence,
-          image_url: detectedData.image_url,
-          is_healthy: detectedData.is_healthy,
-          disease: detectedData.disease,
-          treatment: detectedData.treatment,
-          health_score: detectedData.health_score,
-          severity: detectedData.severity,
-          disease_confidence: detectedData.disease_confidence,
+          user_id: uid,
+          name: detectedData.plant_name || detectedData.name || "Unknown Plant",
+          scientific: detectedData.scientific || detectedData.scientific_name || "",
+          confidence: detectedData.confidence || 0,
+          image_url: detectedData.image_url || "",
+          is_healthy: detectedData.is_healthy ?? true,
+          disease: detectedData.disease || detectedData.disease_name || "Healthy",
+          treatment: detectedData.treatment || "Maintain regular care.",
+          health_score: detectedData.health_score ?? 100,
+          severity: detectedData.severity || "Low",
+          disease_confidence: detectedData.disease_confidence || detectedData.confidence || 100,
           nickname: nickname,
           location: location,
           pot_size: potSize
       };
 
-      await fetch("/api/plants", {
+      const res = await fetch("/api/plants", {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${user.id}`
+          "Authorization": `Bearer ${uid}`
         },
         body: JSON.stringify(payload)
       });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        showToast(errData.error || `Failed to save plant (${res.status})`, "error");
+        addToGardenBtn.disabled = false;
+        addToGardenBtn.innerHTML = originalText;
+        return;
+      }
       
-    } catch(e) { console.error("Error saving plant", e); }
-    closeModal();
-    await awardXP("add_plant");
-    loadPlants();
-    showToast("🌿 Plant saved to your garden!", "success");
+      const savedResult = await res.json();
+      console.log("[GROWZEN] Plant saved successfully:", savedResult);
+
+      closeModal();
+      await awardXP("add_plant");
+      await loadPlants();
+      showToast("🌿 Plant saved to your garden!", "success");
+      
+    } catch(e) {
+      console.error("Error saving plant", e);
+      showToast("Network error while saving plant. Please try again.", "error");
+    } finally {
+      addToGardenBtn.disabled = false;
+      addToGardenBtn.innerHTML = originalText;
+    }
   });
 
   /* ── LOAD PLANTS ───────────────────────────────────────────────── */

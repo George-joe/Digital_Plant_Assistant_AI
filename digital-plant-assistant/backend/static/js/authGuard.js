@@ -12,12 +12,26 @@
         if (!config) config = {};
         if (!config.headers) config.headers = {};
         
-        const token = localStorage.getItem("access_token");
+        let token = localStorage.getItem("access_token");
+        if (!token && userStr) {
+            try {
+                const parsed = JSON.parse(userStr);
+                if (parsed && parsed.id) {
+                    token = String(parsed.id);
+                    localStorage.setItem("access_token", token);
+                }
+            } catch(e) {}
+        }
+        
         if (token) {
             if (config.headers instanceof Headers) {
-                config.headers.append("Authorization", `Bearer ${token}`);
+                if (!config.headers.has("Authorization")) {
+                    config.headers.append("Authorization", `Bearer ${token}`);
+                }
             } else {
-                config.headers["Authorization"] = `Bearer ${token}`;
+                if (!config.headers["Authorization"]) {
+                    config.headers["Authorization"] = `Bearer ${token}`;
+                }
             }
         }
         config.credentials = "include";

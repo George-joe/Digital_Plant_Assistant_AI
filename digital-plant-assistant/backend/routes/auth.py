@@ -1,26 +1,11 @@
 from flask import Blueprint, request, jsonify, session
 from database.extensions import db
 from models.user import User
-# from werkzeug.security import generate_password_hash, check_password_hash
-
 import logging
+from utils.helpers import get_authenticated_user
 
 logger = logging.getLogger(__name__)
 auth_bp = Blueprint('auth', __name__)
-
-def get_authenticated_user():
-    """Helper to get user from session or Bearer token."""
-    user_id = session.get("user_id")
-    
-    # Check Authorization header if session fails (for mobile/API clients)
-    auth_header = request.headers.get("Authorization")
-    if not user_id and auth_header and auth_header.startswith("Bearer "):
-        user_id = auth_header.split(" ")[1] # Using user_id as a simple mock token
-    
-    if not user_id:
-        return None
-    
-    return User.query.get(user_id)
 
 @auth_bp.route("/api/auth/register", methods=["POST"])
 def register():

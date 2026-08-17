@@ -181,32 +181,67 @@ def detect_plant():
 @plants_bp.route("/api/plants", methods=["POST"])
 def create_plant():
     """Final step: Save the confirmed plant from the preview screen into the DB."""
-    data = request.json
-    # Bug 1 Fix: Use shared helper (accepts session OR Bearer token)
+    data = request.json or {}
     user = get_authenticated_user()
-    user_id = user.id if user else (data.get("user_id") if data else None)
+    user_id = user.id if user else data.get("user_id")
     if not user_id:
         return jsonify({"error": "Unauthorized"}), 401
 
+    try:
+        user_id = int(user_id)
+    except (ValueError, TypeError):
+        return jsonify({"error": "Invalid user ID"}), 400
+
+    # Clean numeric fields safely
+    conf = 0
+    try:
+        conf = int(float(data.get("confidence") or 0))
+    except (ValueError, TypeError):
+        pass
+
+    hscore = 100
+    try:
+        hscore = int(float(data.get("health_score") if data.get("health_score") is not None else 100))
+    except (ValueError, TypeError):
+        pass
+
     new_plant = Plant(
         user_id=user_id,
-        name=data.get("name"),
-        scientific=data.get("scientific"),
-        confidence=data.get("confidence", 0),
+        name=data.get("name") or data.get("plant_name") or "Unknown Plant",
+        scientific=data.get("scientific") or data.get("scientific_name"),
+        confidence=conf,
         image_url=data.get("image_url"),
-        status="Healthy" if data.get("is_healthy") else "Sick",
-        last_disease=data.get("disease") if not data.get("is_healthy") else None,
-        health_score=data.get("health_score", 0)
+        status="Healthy" if data.get("is_healthy", True) else "Sick",
+        last_disease=data.get("disease") if not data.get("is_healthy", True) else None,
+        health_score=hscore,
+        nickname=data.get("nickname") or "",
+        location=data.get("location") or "Indoor",
+        pot_size=data.get("pot_size") or "Medium"
     )
     db.session.add(new_plant)
     db.session.commit() # Now we have new_plant.id
 
-    # [GROWZEN] PART 2: Move image to permanent storage
+    # Initialize default care schedule
+    from models.plant import PlantSchedule
+    schedule = PlantSchedule(
+        plant_id=new_plant.id,
+        water_frequency_days=3,
+        watering_interval=7,
+        fertilizer_frequency_days=14,
+        sunlight_pref="Indirect Sunlight",
+        humidity_pref="Moderate",
+        last_watered=datetime.utcnow(),
+        next_watering_date=datetime.utcnow() + timedelta(days=3),
+        last_fertilized=datetime.utcnow(),
+        next_fertilizer_date=datetime.utcnow() + timedelta(days=14)
+    )
+    db.session.add(schedule)
+
+    # Move image to permanent storage
     image_url = data.get("image_url")
     if image_url and "/uploads/" in image_url and "unsplash" not in image_url:
         try:
             import shutil
-            # Extract filename from /uploads/plant_XXX.jpg
             temp_filename = os.path.basename(image_url)
             temp_path = os.path.join(current_app.config["UPLOAD_FOLDER"], temp_filename)
             
@@ -215,32 +250,57 @@ def create_plant():
                 new_filename = f"plant_{new_plant.id}.{ext}"
                 new_path = os.path.join(current_app.config["UPLOAD_FOLDER"], "plants", new_filename)
                 
-                # Ensure plants directory exists
                 os.makedirs(os.path.dirname(new_path), exist_ok=True)
-                
                 shutil.move(temp_path, new_path)
                 
-                # Update DB path to permanent one (absolute project-relative)
                 new_plant.image_url = f"/uploads/plants/{new_filename}"
-                db.session.commit()
                 current_app.logger.info(f"[GROWZEN] Image saved at path: {new_path}")
-                current_app.logger.info(f"[GROWZEN] DB image_url: {new_plant.image_url}")
         except Exception as img_err:
             current_app.logger.error(f"[GROWZEN] Failed to persist image: {str(img_err)}")
 
     # Save initial health report
+    prob = conf or 100
+    try:
+        prob = int(float(data.get("disease_confidence") or conf or 100))
+    except (ValueError, TypeError):
+        pass
+
     report = HealthReport(
         plant_id=new_plant.id,
         diagnosis=data.get("disease", "Healthy"),
-        probability=data.get("disease_confidence", 100),
+        probability=prob,
         severity=data.get("severity", "Low"),
         treatment=data.get("treatment", "Maintain regular care."),
-        image_path=new_plant.image_url # Use the permanent URL
+        image_path=new_plant.image_url
     )
     db.session.add(report)
+
+    # Generate initial treatment and care tasks
+    createTreatmentTasks(new_plant.id, data.get("disease"))
+
+    # Award user XP for adding plant
+    try:
+        from utils.helpers import handle_add_plant_xp
+        handle_add_plant_xp(user_id)
+    except Exception as xp_err:
+        current_app.logger.error(f"[GROWZEN] XP reward error: {xp_err}")
+
     db.session.commit()
 
-    return jsonify({"success": True, "id": new_plant.id, "message": "Plant saved successfully", "image_url": new_plant.image_url}), 201
+    return jsonify({
+        "success": True, 
+        "id": new_plant.id, 
+        "message": "Plant saved successfully", 
+        "image_url": new_plant.image_url,
+        "plant": {
+            "id": new_plant.id,
+            "name": new_plant.name,
+            "scientific": new_plant.scientific,
+            "health_score": new_plant.health_score,
+            "status": new_plant.status,
+            "image_url": new_plant.image_url
+        }
+    }), 201
 
 
 @plants_bp.route("/api/plants", methods=["GET"])

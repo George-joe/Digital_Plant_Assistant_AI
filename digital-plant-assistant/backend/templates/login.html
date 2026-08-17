@@ -56,9 +56,14 @@
           return;
         }
 
-        /* Save current logged user */
+        /* Save current logged user and auth token */
         localStorage.setItem("user", JSON.stringify(data.user));
         localStorage.setItem("userId", data.user.id);
+        if (data.access_token) {
+          localStorage.setItem("access_token", data.access_token);
+        } else if (data.user && data.user.id) {
+          localStorage.setItem("access_token", String(data.user.id));
+        }
         /* login -> dashboard (Existing User) */
         localStorage.setItem("isNewUser", "false");
         console.log("User:", localStorage.getItem("user"));

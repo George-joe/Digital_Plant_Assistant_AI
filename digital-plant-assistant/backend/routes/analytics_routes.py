@@ -6,8 +6,7 @@ from database.extensions import db
 from models.plant import Plant, HealthReport, WeeklyPhoto, PlantSchedule
 from models.user import User
 from datetime import datetime, timedelta
-
-from routes.auth import get_authenticated_user
+from utils.helpers import get_authenticated_user
 
 analytics_bp = Blueprint('analytics', __name__)
 

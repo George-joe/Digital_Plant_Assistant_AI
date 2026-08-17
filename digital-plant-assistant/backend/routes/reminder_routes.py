@@ -90,7 +90,7 @@ def create_reminder_v2():
         db.session.commit()
         
         print(f"Reminder saved: ID {new_reminder.id} for plant {plant_id}") # PART 7: LOGGING
-        return jsonify({"success": True, "message": "Reminder saved successfully", "reminder_id": new_reminder.id})
+        return jsonify({"success": True, "message": "Reminder saved successfully", "reminder_id": new_reminder.id}), 201
     except Exception as e:
         db.session.rollback()
         print(f"Error saving reminder: {e}")
