@@ -150,21 +150,14 @@ def get_analytics(user_id=None):
         else: count = 0
         scan_counts.append(count)
 
-    # 8. AI Insights Generation via Groq — wrapped so a timeout doesn't crash the page
-    ai_insights = f"Your garden maintains an average health of {avg_health}%. You completed {task_completion_pct}% of tasks this week."
-    try:
-        from services.chatbot.groqService import generate_chat_response
-        prompt_context = (
-            f"User Garden Context: {len(plants)} total plants. {healthy_count} healthy. "
-            f"Average health score is {avg_health}%. Disease distribution: {disease_counts}. "
-            f"They completed {tasks_this_week_completed} tasks this week ({task_completion_pct}% completion rate). "
-            f"Generate 2 extremely concise, professional SaaS-style insight sentences about their garden performance based ONLY on this data."
-        )
-        ai_result = generate_chat_response(prompt_context)
-        if ai_result and not ai_result.startswith("AI Error"):
-            ai_insights = ai_result
-    except Exception as groq_err:
-        print(f"[GROWZEN] Groq insights skipped (non-critical): {groq_err}")
+    # 8. Dynamic Garden Performance Insights
+    ai_insights = f"Your garden maintains an average health score of {avg_health}% with {healthy_count} healthy plant{'s' if healthy_count != 1 else ''}."
+    if avg_health >= 80:
+        ai_insights += f" Excellent vitality! Task completion is at {task_completion_pct}% this week. Continue your current routine."
+    elif avg_health >= 50:
+        ai_insights += f" Moderate vitality. {sick_count} plant(s) need close monitoring. Check your Care Plan for treatment actions."
+    else:
+        ai_insights += f" Critical attention required. {sick_count} plant(s) exhibit signs of stress or infection. Review treatment steps immediately."
 
     print(f"[GROWZEN] Analytics result: plants={len(plants)}, avg_health={avg_health}, scans={total_scans}")
 
