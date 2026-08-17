@@ -37,11 +37,12 @@ def generate_chat_response(message, plant_context=None):
             
         messages.append({"role": "user", "content": user_content})
         
-        logger.info(f"Sending request to Groq API with model: llama-3.1-8b-instant")
+        model_to_use = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
+        logger.info(f"Sending request to Groq API with model: {model_to_use}")
         completion = client.chat.completions.create(
-            model="llama-3.1-8b-instant",
+            model=model_to_use,
             messages=messages,
-            max_tokens=200,
+            max_tokens=250,
             temperature=0.7,
             timeout=15.0
         )
@@ -67,8 +68,9 @@ def test_groq_connection():
     """
     try:
         logger.info("Testing Groq API connection...")
+        model_to_use = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
         completion = client.chat.completions.create(
-            model="llama-3.1-8b-instant",
+            model=model_to_use,
             messages=[{"role": "user", "content": "Hello, respond with 'OK' if you can hear me."}],
             max_tokens=10
         )
