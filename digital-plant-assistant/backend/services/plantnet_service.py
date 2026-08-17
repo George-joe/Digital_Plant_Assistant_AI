@@ -12,12 +12,13 @@ def identify_plant(image_path):
     for attempt in range(2):
         try:
             with open(image_path, "rb") as img:
+                filename = os.path.basename(image_path)
                 res = requests.post(
                     url,
                     params={"api-key": api_key},
-                    files={"images": img},
+                    files={"images": (filename, img, "image/jpeg")},
                     data={"organs": "leaf"},
-                    timeout=5
+                    timeout=(5, 10)
                 )
 
             if res.status_code == 401:

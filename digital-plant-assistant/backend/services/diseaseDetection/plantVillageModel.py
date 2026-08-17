@@ -33,6 +33,12 @@ def load_plant_village_model():
 
     try:
         import tensorflow as tf
+        # Prevent TensorFlow thread deadlock in Gunicorn/WSGI container environments
+        try:
+            tf.config.threading.set_intra_op_parallelism_threads(1)
+            tf.config.threading.set_inter_op_parallelism_threads(1)
+        except Exception:
+            pass
         _model = tf.keras.models.load_model(model_path)
 
         if os.path.exists(labels_path):
@@ -205,11 +211,17 @@ def analyze_leaf_disease(image_path: str, expected_plant: str = None) -> dict:
     # ─ Predict ─────────────────────────────────────────────────────────────────
     try:
         print(f"[DEBUG] Image shape before prediction: {img_batch.shape}")
-        preds = model.predict(img_batch, verbose=0)[0]
+        # Direct execution avoids TensorFlow predict() thread-pool deadlock in Gunicorn/WSGI
+        preds_tensor = model(img_batch, training=False)
+        preds = preds_tensor.numpy()[0]
         print(f"[DEBUG] Prediction probabilities: {preds.tolist()}")
     except Exception as e:
-        logger.error(f"[GROWZEN DEBUG] Model prediction error: {e}")
-        return _error_result(f"Prediction failed: {e}")
+        logger.error(f"[GROWZEN DEBUG] Model direct execution failed, falling back to predict: {e}")
+        try:
+            preds = model.predict(img_batch, verbose=0)[0]
+        except Exception as pred_err:
+            logger.error(f"[GROWZEN DEBUG] Model prediction error: {pred_err}")
+            return _error_result(f"Prediction failed: {pred_err}")
 
     class_idx   = int(np.argmax(preds))
     print(f"[DEBUG] Predicted class index: {class_idx}")

@@ -233,13 +233,30 @@ document.addEventListener("DOMContentLoaded", () => {
     let mi = 0;
     const interval = setInterval(() => { if (detectingText) detectingText.textContent = msgs[mi++ % msgs.length]; }, 1500);
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 35000);
+
     try {
       const fd = new FormData();
       fd.append("image", file);
-      fd.append("user_id", user.id);
-      const res = await fetch("/api/identify-plant", { method: "POST", body: fd });
-      const data = await res.json();
+      const uid = (user && user.id) ? user.id : (localStorage.getItem("user_id") || "1");
+      fd.append("user_id", uid);
+
+      const res = await fetch("/api/identify-plant", { 
+        method: "POST", 
+        body: fd,
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
       clearInterval(interval);
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        if (detectingText) detectingText.textContent = "⚠️ " + (errData.error || `Server error (${res.status})`);
+        return;
+      }
+
+      const data = await res.json();
 
       if (data.error) { if (detectingText) detectingText.textContent = "⚠️ " + data.error; return; }
 
@@ -264,8 +281,13 @@ document.addEventListener("DOMContentLoaded", () => {
       
       showStep("confirm");
     } catch(e) {
+      clearTimeout(timeoutId);
       clearInterval(interval);
-      if (detectingText) detectingText.textContent = "Detection failed. Check your connection.";
+      if (e.name === 'AbortError') {
+        if (detectingText) detectingText.textContent = "Request timed out. Please try again with a smaller image.";
+      } else {
+        if (detectingText) detectingText.textContent = "Detection failed. Check your connection.";
+      }
     }
   }
 
