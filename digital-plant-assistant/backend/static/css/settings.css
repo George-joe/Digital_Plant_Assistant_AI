@@ -1,0 +1,13 @@
+/* settings.css — minimal overrides only, design-system.css handles base styles */
+
+/* The modal is styled by design-system.css and sidebar.css already.
+   This file only adds settings-specific overrides. */
+
+.settings-xp-row {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 16px;
+    background: var(--gray-50);
+    padding: 16px;
+    border-radius: 12px;
+}

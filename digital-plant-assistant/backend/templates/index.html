@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>GrowZen — Grow Better Plants with AI</title>
+  <meta name="description"
+    content="GrowZen is your AI-powered plant care companion. Identify plants, track care schedules, detect disease, and grow with confidence.">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/design-system.css') }}">
+  <style>
+    /* ---- LANDING-ONLY STYLES ---- */
+    body {
+      background: white;
+      overflow-x: hidden;
+    }
+
+    /* NAVBAR */
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 60px;
+      border-bottom: 1px solid var(--gray-100);
+      position: sticky;
+      top: 0;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(12px);
+      z-index: 100;
+    }
+
+    .nav-logo {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .nav-link-text {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--gray-600);
+      padding: 8px 14px;
+      border-radius: var(--radius-full);
+      transition: var(--transition-fast);
+      text-decoration: none;
+    }
+
+    .nav-link-text:hover {
+      background: var(--gray-100);
+      color: var(--gray-900);
+    }
+
+    /* HERO */
+    .hero {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 100px 40px 80px;
+      text-align: center;
+    }
+
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--green-100);
+      color: var(--green-800);
+      padding: 5px 14px;
+      border-radius: var(--radius-full);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-bottom: 28px;
+    }
+
+    .hero h1 {
+      font-size: clamp(36px, 5vw, 60px);
+      font-weight: 800;
+      color: var(--gray-900);
+      line-height: 1.1;
+      letter-spacing: -1.5px;
+      margin-bottom: 22px;
+    }
+
+    .hero h1 span {
+      color: var(--primary);
+      position: relative;
+    }
+
+    .hero-sub {
+      font-size: 18px;
+      color: var(--gray-500);
+      line-height: 1.7;
+      max-width: 560px;
+      margin: 0 auto 40px;
+    }
+
+    .hero-cta {
+      display: flex;
+      gap: 14px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .btn-hero-primary {
+      padding: 14px 32px;
+      border-radius: var(--radius-full);
+      font-size: 16px;
+      font-weight: 700;
+      background: var(--primary);
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: var(--transition-base);
+      box-shadow: 0 4px 20px rgba(26, 92, 55, 0.3);
+    }
+
+    .btn-hero-primary:hover {
+      background: var(--primary-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 10px 28px rgba(26, 92, 55, 0.35);
+    }
+
+    .btn-hero-ghost {
+      padding: 14px 28px;
+      border-radius: var(--radius-full);
+      font-size: 16px;
+      font-weight: 600;
+      background: transparent;
+      color: var(--gray-700);
+      border: 1.5px solid var(--gray-200);
+      cursor: pointer;
+      transition: var(--transition-base);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .btn-hero-ghost:hover {
+      border-color: var(--gray-400);
+      background: var(--gray-50);
+    }
+
+    /* HERO IMAGE */
+    .hero-screenshot {
+      max-width: 960px;
+      margin: 60px auto 80px;
+      padding: 0 40px;
+    }
+
+    .hero-screenshot-inner {
+      background: linear-gradient(135deg, #f0fdf4, white);
+      border: 1px solid var(--gray-200);
+      border-radius: 24px;
+      padding: 32px;
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.08);
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .mock-card {
+      background: white;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--gray-100);
+    }
+
+    .mock-card-img {
+      width: 100%;
+      height: 100px;
+      border-radius: 10px;
+      object-fit: cover;
+      margin-bottom: 12px;
+      background: var(--gray-100);
+    }
+
+    .mock-card-name {
+      font-weight: 700;
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+
+    .mock-card-tag {
+      display: inline-block;
+      background: var(--green-100);
+      color: var(--green-800);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 99px;
+    }
+
+    /* FEATURES */
+    .features {
+      padding: 80px 60px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .features-header {
+      text-align: center;
+      margin-bottom: 60px;
+    }
+
+    .features-header h2 {
+      font-size: 36px;
+      font-weight: 800;
+      color: var(--gray-900);
+      letter-spacing: -0.5px;
+      margin-bottom: 12px;
+    }
+
+    .features-header p {
+      font-size: 17px;
+      color: var(--gray-500);
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+    }
+
+    .feature-card {
+      padding: 32px;
+      border-radius: 20px;
+      border: 1px solid var(--gray-200);
+      background: white;
+      transition: var(--transition-base);
+      opacity: 0;
+      transform: translateY(16px);
+    }
+
+    .feature-card.visible {
+      opacity: 1;
+      transform: translateY(0);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+
+    .feature-card:hover {
+      border-color: var(--green-200);
+      box-shadow: 0 8px 30px rgba(26, 92, 55, 0.08);
+    }
+
+    .feature-icon {
+      font-size: 32px;
+      margin-bottom: 16px;
+    }
+
+    .feature-card h3 {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--gray-900);
+      margin-bottom: 10px;
+    }
+
+    .feature-card p {
+      font-size: 15px;
+      color: var(--gray-500);
+      line-height: 1.7;
+    }
+
+    /* CTA */
+    .cta {
+      text-align: center;
+      padding: 80px 60px;
+      background: linear-gradient(135deg, var(--green-50), white);
+    }
+
+    .cta h2 {
+      font-size: 36px;
+      font-weight: 800;
+      color: var(--gray-900);
+      margin-bottom: 16px;
+      letter-spacing: -0.5px;
+    }
+
+    .cta p {
+      color: var(--gray-500);
+      font-size: 17px;
+      margin-bottom: 36px;
+    }
+
+    /* FOOTER */
+    .footer {
+      border-top: 1px solid var(--gray-100);
+      padding: 32px 60px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .footer-logo {
+      font-weight: 800;
+      color: var(--primary);
+      font-size: 16px;
+    }
+
+    .footer p {
+      font-size: 13px;
+      color: var(--gray-400);
+    }
+
+    @media (max-width: 768px) {
+      .nav {
+        padding: 16px 20px;
+      }
+
+      .hero {
+        padding: 60px 24px 40px;
+      }
+
+      .features {
+        padding: 60px 24px;
+      }
+
+      .features-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-screenshot-inner {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+
+      .hero-screenshot-inner .mock-card:nth-child(n+2) {
+        display: none;
+      }
+
+      .cta {
+        padding: 60px 24px;
+      }
+
+      .footer {
+        flex-direction: column;
+        gap: 12px;
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="nav">
+    <div class="nav-logo">🌱 GrowZen</div>
+    <div class="nav-links">
+      <a href="{{ url_for('ui.login') }}" class="nav-link-text">Log in</a>
+      <button class="btn-hero-primary" style="padding:9px 20px; font-size:14px;"
+        onclick="window.location.href='{{ url_for('ui.signup') }}'">Get Started Free</button>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-eyebrow">🤖 AI-Powered Plant Care</div>
+    <h1>Grow Better Plants <span>with AI</span></h1>
+    <p class="hero-sub">Identify any plant, track watering schedules, detect diseases early, and get personalized care
+      advice — all in one beautiful app.</p>
+    <div class="hero-cta">
+      <button class="btn-hero-primary" onclick="window.location.href='{{ url_for('ui.signup') }}'">Start
+        Growing</button>
+      <a href="{{ url_for('ui.login') }}" class="btn-hero-ghost">See How It Works →</a>
+    </div>
+  </section>
+
+  <!-- MOCK SCREENSHOT -->
+  <div class="hero-screenshot">
+    <div class="hero-screenshot-inner">
+      <div class="mock-card">
+        <img class="mock-card-img" src="https://images.unsplash.com/photo-1463936575829-25148e1db1b8?w=300&fit=crop"
+          alt="Monstera">
+        <div class="mock-card-name">Monstera Deliciosa</div>
+        <span class="mock-card-tag">💚 95% Healthy</span>
+      </div>
+      <div class="mock-card">
+        <img class="mock-card-img" src="https://images.unsplash.com/photo-1598512752271-33f913a5af13?w=300&fit=crop"
+          alt="Cactus">
+        <div class="mock-card-name">Golden Barrel Cactus</div>
+        <span class="mock-card-tag">💧 Water today</span>
+      </div>
+      <div class="mock-card">
+        <img class="mock-card-img" src="https://images.unsplash.com/photo-1591958911259-bee2173bdccc?w=300&fit=crop"
+          alt="Pothos">
+        <div class="mock-card-name">Golden Pothos</div>
+        <span class="mock-card-tag">🌱 Thriving</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- FEATURES -->
+  <section class="features">
+    <div class="features-header">
+      <h2>Everything your plants need</h2>
+      <p>Powerful AI tools designed to make plant care effortless and enjoyable</p>
+    </div>
+    <div class="features-grid" id="featuresGrid">
+      <div class="feature-card">
+        <div class="feature-icon">🔍</div>
+        <h3>AI Plant Detection</h3>
+        <p>Upload any photo and our AI instantly identifies the species, provides care instructions, and adds it to your
+          garden dashboard.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">💧</div>
+        <h3>Smart Care Reminders</h3>
+        <p>Set personalized watering and fertilizing schedules. Get Telegram notifications so your plants always stay
+          hydrated on time.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🩺</div>
+        <h3>Disease Diagnosis</h3>
+        <p>Photograph a leaf to detect diseases, pests, and deficiencies early. Get instant AI-generated treatment
+          recommendations.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📊</div>
+        <h3>Growth Analytics</h3>
+        <p>Weekly photo timelines track your plant's progress. AI compares photos over time and shows health trends and
+          growth improvements.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta">
+    <h2>Ready to level up your plant care?</h2>
+    <p>Join plant lovers who use GrowZen to keep their plants healthy and thriving.</p>
+    <button class="btn-hero-primary" onclick="window.location.href='{{ url_for('ui.signup') }}'">🌱 Create Free
+      Account</button>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer-logo">🌱 GrowZen</div>
+    <p>© 2026 GrowZen. Built with care for plant lovers.</p>
+  </footer>
+
+  <script>
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach((entry, i) => {
+        if (entry.isIntersecting) {
+          setTimeout(() => entry.target.classList.add('visible'), i * 100);
+        }
+      });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.feature-card').forEach(c => observer.observe(c));
+  </script>
+</body>
+
+</html>

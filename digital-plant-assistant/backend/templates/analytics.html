@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+{% block title %}Analytics – GrowZen{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/analytics.css') }}">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="an-page">
+
+    <!-- ── Page Header ───────────────────────────────────────── -->
+    <div class="an-header">
+        <div>
+            <h1 class="an-title">Garden Analytics</h1>
+            <p class="an-sub">Data-driven insights into your plant health, active care tasks, and overall performance.</p>
+        </div>
+        <div id="anUserBadge" class="an-user-badge" style="display:none;">
+            <span id="anLevel">🌱 Rookie</span>
+            <span class="an-xp-val"><span id="anXp">0</span> XP</span>
+        </div>
+    </div>
+
+    <!-- ── AI Insights Box ────────────────────────────────────── -->
+    <div id="aiInsightsBox" class="an-ai-insights-box" style="display:none;">
+        <div class="ai-icon">✨</div>
+        <div class="ai-text" id="aiInsightsText">Generating AI insights...</div>
+    </div>
+
+    <!-- ── Loading/Error States ──────────────────────────────── -->
+    <div id="anLoading" class="an-loading-state">
+        <div class="spinner"></div>
+        <p>Analyzing garden data...</p>
+    </div>
+
+    <div id="anEmpty" class="an-empty-state" style="display:none;">
+        <div class="an-empty-icon">📊</div>
+        <h2>No data yet</h2>
+        <p>Add plants and complete care tasks to build your analytics dashboard.</p>
+        <a href="/dashboard" class="btn btn-primary">Go to Garden</a>
+    </div>
+
+    <div id="anContent" style="display:none;">
+
+        <!-- ── Summary Stats Row ─────────────────────────────── -->
+        <div class="an-stats-row">
+            <div class="an-stat-card">
+                <div class="an-stat-icon an-icon-plants">🪴</div>
+                <div class="an-stat-body">
+                    <div class="an-stat-val" id="statTotal">—</div>
+                    <div class="an-stat-label">Total Plants</div>
+                </div>
+            </div>
+            <div class="an-stat-card">
+                <div class="an-stat-icon an-icon-healthy">✅</div>
+                <div class="an-stat-body">
+                    <div class="an-stat-val an-green" id="statHealthy">—</div>
+                    <div class="an-stat-label">Healthy Plants</div>
+                </div>
+            </div>
+            <div class="an-stat-card">
+                <div class="an-stat-icon an-icon-attn">⚠️</div>
+                <div class="an-stat-body">
+                    <div class="an-stat-val an-amber" id="statAttn">—</div>
+                    <div class="an-stat-label">Need Attention</div>
+                </div>
+            </div>
+            <div class="an-stat-card">
+                <div class="an-stat-icon an-icon-health">📈</div>
+                <div class="an-stat-body">
+                    <div class="an-stat-val an-blue" id="statAvg">—</div>
+                    <div class="an-stat-label">Avg Health</div>
+                </div>
+            </div>
+            <div class="an-stat-card">
+                <div class="an-stat-icon an-icon-health">📷</div>
+                <div class="an-stat-body">
+                    <div class="an-stat-val" id="statScans">—</div>
+                    <div class="an-stat-label">Total Scans</div>
+                </div>
+            </div>
+            <div class="an-stat-card">
+                <div class="an-stat-icon an-icon-plants">📝</div>
+                <div class="an-stat-body">
+                    <div class="an-stat-val" id="statTasks">—</div>
+                    <div class="an-stat-label">Tasks Completed</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="an-charts-grid">
+            <!-- Health Trend Line Chart -->
+            <div class="an-card chart-card-wide">
+                <div class="an-card-header">
+                    <div>
+                        <h2 class="an-card-title">Health Trend</h2>
+                        <p class="an-card-sub">Garden health score over time</p>
+                    </div>
+                </div>
+                <div style="position:relative; height:240px;">
+                    <canvas id="healthTrendChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Disease Distribution Pie Chart -->
+            <div class="an-card">
+                <div class="an-card-header">
+                    <div>
+                        <h2 class="an-card-title">Disease Distribution</h2>
+                        <p class="an-card-sub">Health & affected plants</p>
+                    </div>
+                </div>
+                <div style="position:relative; height:200px;">
+                    <canvas id="distributionChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Watering Consistency Bar Chart -->
+            <div class="an-card">
+                <div class="an-card-header">
+                    <div>
+                        <h2 class="an-card-title">Watering Consistency</h2>
+                        <p class="an-card-sub">Tasks completed over past 7 days</p>
+                    </div>
+                </div>
+                <div style="position:relative; height:200px;">
+                    <canvas id="wateringChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Scan Activity Bar Chart -->
+            <div class="an-card">
+                <div class="an-card-header">
+                    <div>
+                        <h2 class="an-card-title">Scan Activity</h2>
+                        <p class="an-card-sub">Diagnoses requested per week</p>
+                    </div>
+                </div>
+                <div style="position:relative; height:200px;">
+                    <canvas id="scanActivityChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Care Task Analytics (Text/Metrics Grid) -->
+            <div class="an-card an-task-analytics">
+                <div class="an-card-header">
+                    <div>
+                        <h2 class="an-card-title">Care Task Performance</h2>
+                        <p class="an-card-sub">Your completion metrics this week</p>
+                    </div>
+                </div>
+                <div class="task-perf-grid">
+                    <div class="perf-box green-box">
+                        <div class="perf-val" id="perfCompleted">0</div>
+                        <div class="perf-label">Completed</div>
+                    </div>
+                    <div class="perf-box red-box">
+                        <div class="perf-val" id="perfMissed">0</div>
+                        <div class="perf-label">Missed</div>
+                    </div>
+                    <div class="perf-box blue-box">
+                        <div class="perf-val"><span id="perfPct">0</span>%</div>
+                        <div class="perf-label">Completion</div>
+                    </div>
+                </div>
+                <!-- Progress Bar visual -->
+                <div class="completion-bar-wrap">
+                    <div class="completion-bar-fill" id="perfPctBar" style="width: 0%;"></div>
+                </div>
+            </div>
+
+            <!-- Plant Growth Progress -->
+            <div class="an-card chart-card-wide" style="grid-column: span 2;">
+                <div class="an-card-header">
+                    <div>
+                        <h2 class="an-card-title">Plant Growth Progress</h2>
+                        <p class="an-card-sub">Current life stage of your plants</p>
+                    </div>
+                </div>
+                <div id="growthProgressList" class="growth-list">
+                    <!-- Dynamic -->
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/analytics.js') }}"></script>
+{% endblock %}

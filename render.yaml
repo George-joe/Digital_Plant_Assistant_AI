@@ -1,0 +1,29 @@
+# render.yaml — GrowZen Render deployment configuration
+# Docs: https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: growzen
+    runtime: python
+    # Root directory containing app.py and requirements.txt
+    rootDir: digital-plant-assistant/backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn wsgi:app --timeout 120 --workers 1
+    envVars:
+      # Python version to use
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      # Model path (relative to project root on Render)
+      - key: PLANT_DISEASE_MODEL_PATH
+        value: ai/plant-disease-model/model/plant_disease_model.keras
+      # Secrets — set these in the Render dashboard (never commit real values here)
+      - key: SECRET_KEY
+        sync: false
+      - key: PLANTNET_API_KEY
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: OPENWEATHER_API_KEY
+        sync: false
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false

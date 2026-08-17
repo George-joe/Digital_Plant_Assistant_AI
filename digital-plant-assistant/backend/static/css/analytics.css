@@ -1,0 +1,372 @@
+/* ============================================================
+   GROWZEN ANALYTICS — SaaS Dashboard
+   ============================================================ */
+
+.an-page {
+    padding: 28px 32px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* ── Header ── */
+.an-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 24px;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.an-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: #111827;
+    margin: 0;
+}
+
+.an-sub {
+    font-size: 13.5px;
+    color: #6b7280;
+    margin: 4px 0 0;
+}
+
+.an-user-badge {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: white;
+    border: 1px solid #e5e8ec;
+    border-radius: 10px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #1a5c37;
+}
+.an-xp-val { color: #6b7280; font-weight: 500; }
+
+/* ── Loading States ── */
+.an-loading-state,
+.an-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 80px 20px;
+    text-align: center;
+    color: #9ca3af;
+    font-size: 14px;
+}
+
+.an-empty-icon { font-size: 52px; }
+.an-empty-state h2 { font-size: 20px; font-weight: 700; color: #111827; margin: 0; }
+.an-empty-state p  { color: #6b7280; margin: 0; max-width: 300px; }
+
+/* ── Stats Row ── */
+.an-stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.an-stat-card {
+    background: white;
+    border: 1px solid #e5e8ec;
+    border-radius: 12px;
+    padding: 16px 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    transition: box-shadow 0.15s;
+}
+.an-stat-card:hover { box-shadow: 0 2px 10px rgba(0,0,0,0.07); }
+
+.an-stat-icon {
+    font-size: 22px;
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.an-icon-plants  { background: #f0fdf4; }
+.an-icon-healthy { background: #dcfce7; }
+.an-icon-attn    { background: #fffbeb; }
+.an-icon-health  { background: #fce7f3; }
+
+.an-stat-val   { font-size: 26px; font-weight: 700; color: #111827; }
+.an-stat-label { font-size: 12px; font-weight: 500; color: #6b7280; margin-top: 2px; }
+.an-green { color: #16a34a; }
+.an-amber { color: #d97706; }
+.an-blue  { color: #2563eb; }
+
+/* ── Charts Grid ── */
+.an-charts-grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    grid-template-rows: auto auto;
+    gap: 16px;
+}
+
+.chart-card-wide {
+    grid-column: 1 / -1;
+}
+
+/* ── Cards ── */
+.an-card {
+    background: white;
+    border: 1px solid #e5e8ec;
+    border-radius: 12px;
+    padding: 18px 20px;
+}
+
+.an-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+    gap: 8px;
+}
+
+.an-card-title {
+    font-size: 14.5px;
+    font-weight: 600;
+    color: #111827;
+    margin: 0;
+}
+
+.an-card-sub {
+    font-size: 12px;
+    color: #6b7280;
+    margin: 3px 0 0;
+}
+
+/* ── AI Insights ── */
+.an-ai-insights-box {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    background: linear-gradient(to right, #fdf4ff, #faf5ff);
+    border: 1px solid #f3e8ff;
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 24px;
+}
+.ai-icon { font-size: 20px; }
+.ai-text { font-size: 13.5px; line-height: 1.5; color: #4c1d95; font-weight: 500; }
+
+/* ── Task Analytics Grid ── */
+.task-perf-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+    margin: 16px 0;
+}
+.perf-box {
+    text-align: center;
+    padding: 12px 0;
+    border-radius: 8px;
+    border: 1px solid transparent;
+}
+.green-box { background: #f0fdf4; border-color: #dcfce7; color: #166534; }
+.red-box   { background: #fef2f2; border-color: #fee2e2; color: #991b1b; }
+.blue-box  { background: #eff6ff; border-color: #dbeafe; color: #1e40af; }
+.perf-val { font-size: 22px; font-weight: 700; }
+.perf-label { font-size: 11px; font-weight: 600; text-transform: uppercase; margin-top: 2px; }
+
+.completion-bar-wrap {
+    background: #f1f5f9;
+    height: 8px;
+    border-radius: 99px;
+    overflow: hidden;
+    width: 100%;
+}
+.completion-bar-fill {
+    height: 100%;
+    background: #2563eb;
+    border-radius: 99px;
+    transition: width 0.5s ease-out;
+}
+
+/* ── Growth List ── */
+.growth-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+    margin-top: 10px;
+}
+.growth-item {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    padding: 12px 14px;
+    border-radius: 8px;
+}
+.growth-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+.growth-name { font-weight: 600; font-size: 13.5px; color: #1e293b; }
+.growth-stage-badge {
+    font-size: 10.5px; font-weight: 700;
+    padding: 2px 6px; border-radius: 4px;
+    background: #e0e7ff; color: #3730a3;
+}
+.growth-score-label {
+    font-size: 11.5px;
+    color: #64748b;
+    margin-bottom: 2px;
+}
+
+/* Trend Badge */
+.an-trend-badge {
+    font-size: 11.5px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 99px;
+    background: #f0fdf4;
+    color: #16a34a;
+    white-space: nowrap;
+}
+
+/* Alerts Badge */
+.an-alerts-badge {
+    background: #fee2e2;
+    color: #991b1b;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 99px;
+    white-space: nowrap;
+}
+
+/* ── Pie Legend ── */
+.an-pie-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+}
+.an-pie-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+    flex-shrink: 0;
+}
+.an-pie-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    color: #374151;
+}
+
+/* ── Disease List ── */
+.an-disease-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.an-disease-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 10px 12px;
+    background: #fafafa;
+    border: 1px solid #f1f5f9;
+    border-radius: 8px;
+    font-size: 12.5px;
+    gap: 8px;
+}
+.an-disease-name { font-weight: 600; color: #991b1b; }
+.an-disease-plant { color: #374151; font-size: 11.5px; margin-top: 2px; }
+.an-disease-date  { color: #9ca3af; font-size: 11px; white-space: nowrap; }
+
+.an-severity-badge {
+    font-size: 10.5px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 99px;
+}
+.severity-high   { background: #fee2e2; color: #991b1b; }
+.severity-medium { background: #fef3c7; color: #92400e; }
+.severity-low    { background: #dcfce7; color: #166534; }
+
+.an-empty-list {
+    font-size: 13px;
+    color: #9ca3af;
+    padding: 20px 0;
+    text-align: center;
+}
+
+/* ── Watering List ── */
+.an-watering-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.an-water-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 12px;
+    border: 1px solid #f1f5f9;
+    border-radius: 8px;
+    background: #fafafa;
+    font-size: 13px;
+}
+.an-water-plant { font-weight: 600; color: #111827; }
+.an-water-meta  { font-size: 11.5px; color: #6b7280; margin-top: 2px; }
+.an-water-status { font-size: 11.5px; font-weight: 600; }
+.water-overdue { color: #dc2626; }
+.water-ok      { color: #16a34a; }
+
+/* ── Bottom 2-col Row ── */
+.an-bottom-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 16px;
+}
+
+/* ── XP Breakdown ── */
+.an-xp-breakdown {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.an-xp-level-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 13px;
+    padding: 8px 0;
+    border-bottom: 1px solid #f3f4f6;
+}
+.an-xp-level-row:last-child { border-bottom: none; }
+.an-xp-level-label { font-weight: 600; color: #111827; }
+.an-xp-level-range { font-size: 12px; color: #6b7280; }
+.an-xp-level-active   { color: #1a5c37; font-weight: 700; }
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+    .an-charts-grid {
+        grid-template-columns: 1fr;
+    }
+    .chart-card-wide { grid-column: 1; }
+    .an-stats-row { grid-template-columns: 1fr 1fr; }
+    .an-bottom-row { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 600px) {
+    .an-page { padding: 16px; }
+    .an-stats-row { grid-template-columns: 1fr 1fr; }
+}

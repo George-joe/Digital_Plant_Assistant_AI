@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Signup – GrowZen</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
+<body>
+
+  <div class="auth-container">
+    <div class="auth-card">
+      <h1>Create Account</h1>
+      <p class="subtitle">Start your plant journey with GrowZen</p>
+
+      <!-- IMPORTANT: id signupForm and NO onsubmit attribute -->
+      <form id="signupForm">
+
+        <div class="input-group">
+          <label>Name</label>
+          <input id="name" type="text" placeholder="Your name" required>
+        </div>
+
+        <div class="input-group">
+          <label>Email</label>
+          <input id="email" type="email" placeholder="you@example.com" required>
+        </div>
+
+        <div class="input-group">
+          <label>Password</label>
+          <input id="password" type="password" placeholder="••••••••" required>
+        </div>
+
+        <button type="submit" class="primary-btn full">Create Account</button>
+      </form>
+
+      <p class="switch">
+        Already have an account? <a href="{{ url_for('ui.login') }}">Login</a>
+      </p>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById("signupForm").addEventListener("submit", async function (e) {
+      e.preventDefault();
+
+      const name = document.getElementById("name").value;
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      try {
+        const res = await fetch("/api/auth/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, email, password })
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+          alert(data.error || "Signup failed");
+          return;
+        }
+
+        /* login automatically after signup */
+        localStorage.setItem("user", JSON.stringify(data.user));
+        localStorage.setItem("userId", data.user.id);
+        if (data.access_token) {
+          localStorage.setItem("access_token", data.access_token);
+        }
+
+        /* move to onboarding (New User) */
+        localStorage.setItem("isNewUser", "true");
+        console.log("User:", localStorage.getItem("user"));
+        console.log("isNewUser:", localStorage.getItem("isNewUser"));
+        window.location.href = "{{ url_for('ui.onboarding') }}";
+      } catch (err) {
+        console.error("Signup error:", err);
+        alert("Error connecting to server. Please ensure the backend is running.");
+      }
+    });
+  </script>
+
+</body>
+
+</html>

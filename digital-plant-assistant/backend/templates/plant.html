@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Plant Profile – GrowZen</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Your plant's health dashboard – track growth, detect diseases, and get AI care advice.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/design-system.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/plant.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/weather-widget.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+      // PAGE PROTECTION
+      (function() {
+        const user = JSON.parse(localStorage.getItem("user"));
+        if (!user) {
+          window.location.href = "/login";
+        }
+      })();
+    </script>
+</head>
+
+<body class="plant-body">
+
+    <!-- ══ LOADING OVERLAY ═══════════════════════════════════════════════ -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-title">Gathering Plant Insights</div>
+        <div class="loading-sub">Connecting to GrowZen AI services...</div>
+    </div>
+
+    <!-- ══ ERROR OVERLAY ═════════════════════════════════════════════════ -->
+    <div id="errorOverlay" class="error-overlay">
+        <div class="error-icon">⚠️</div>
+        <div class="error-title">Oops! Something went wrong</div>
+        <div class="error-msg" id="errorMsg">We couldn't load your plant data. Please check your connection and try again.</div>
+        <button class="btn btn-primary" onclick="window.location.reload()">Try Again</button>
+        <button class="btn btn-ghost" onclick="window.location.href='/dashboard'" style="margin-top:12px;">Back to Garden</button>
+    </div>
+
+    <!-- ══ TOP NAV ═══════════════════════════════════════════════════════ -->
+    <nav class="plant-topnav">
+        <button class="plant-back-btn" id="backBtn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+            Garden
+        </button>
+        <div class="plant-topnav-center" id="topNavPlantName">Loading...</div>
+        <div class="plant-topnav-right">
+            <span id="plantStatusPill" class="badge badge-green">Healthy</span>
+        </div>
+    </nav>
+
+    <!-- ══ SMART ALERT BANNER ════════════════════════════════════════════ -->
+    <div id="healthAlertBanner" class="health-alert-banner" style="display:none;">
+        <div class="alert-banner-inner">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#b45309" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <span id="healthAlertMsg">Plant needs attention.</span>
+        </div>
+        <button onclick="document.getElementById('healthAlertBanner').style.display='none'" class="alert-close-btn">✕</button>
+    </div>
+
+    <!-- ══ COMPACT PLANT HEADER ══════════════════════════════════════════ -->
+    <div class="plant-header-section">
+        <!-- Plant Image -->
+        <div class="ph-img-wrap">
+            <img id="plantHeroImg" class="ph-img" src="" alt="Plant"
+                onerror="this.src='https://images.unsplash.com/photo-1463936575829-25148e1db1b8?w=400&q=80'">
+            <div class="ph-img-health-ring">
+                <svg class="health-ring-svg" viewBox="0 0 80 80">
+                    <circle class="ring-bg" cx="40" cy="40" r="34" />
+                    <circle class="ring-fill" id="healthRingFill" cx="40" cy="40" r="34"
+                        stroke-dasharray="214"
+                        stroke-dashoffset="214" />
+                </svg>
+                <div class="ring-center-text">
+                    <div class="ring-score" id="ringScore">0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Plant Info (center) -->
+        <div class="ph-info">
+            <div class="ph-info-top">
+                <h1 id="plantHeroName" class="ph-plant-name">Loading...</h1>
+                <p id="plantHeroSci" class="ph-plant-sci">Unknown Species</p>
+            </div>
+            <div class="ph-quick-actions">
+                <button class="ph-action-btn ph-action-primary" id="heroDiagnoseBtn">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    Run Diagnosis
+                </button>
+                <button class="ph-action-btn ph-action-water" id="waterNowBtn">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C6 8 4 13 4 16a8 8 0 0016 0c0-3-2-8-8-14z"/></svg>
+                    Mark Watered
+                </button>
+            </div>
+        </div>
+
+        <!-- Plant Status (right) -->
+        <div class="ph-status-panel">
+            <div class="ph-status-row">
+                <span class="ph-status-label">Status</span>
+                <span id="heroBadgeStatus" class="badge badge-green">Healthy</span>
+            </div>
+            <div class="ph-status-row">
+                <span class="ph-status-label">AI Confidence</span>
+                <span class="ph-status-val"><span id="heroConfidence">—</span>%</span>
+            </div>
+            <div class="ph-status-row">
+                <span class="ph-status-label">Last Scan</span>
+                <span class="ph-status-val" id="lastScanTime">Never</span>
+            </div>
+            <div class="ph-status-row">
+                <span class="ph-status-label">Days in Garden</span>
+                <span class="ph-status-val" id="statDaysInGarden">—</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══ COMPACT METRICS ROW ═══════════════════════════════════════════ -->
+    <div class="plant-metrics-row">
+        <div class="metric-item">
+            <div class="metric-icon metric-icon-health">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            </div>
+            <div class="metric-content">
+                <div class="metric-val" id="ovHealthScore">—</div>
+                <div class="metric-label">Health Score</div>
+                <div class="metric-desc" id="ovHealthLabel">Awaiting scan</div>
+            </div>
+            <div class="metric-bar-wrap">
+                <div class="metric-bar-fill" id="ovHealthBar" style="width:0%"></div>
+            </div>
+        </div>
+        <div class="metric-divider"></div>
+        <div class="metric-item">
+            <div class="metric-icon metric-icon-water">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C6 8 4 13 4 16a8 8 0 0016 0c0-3-2-8-8-14z"/></svg>
+            </div>
+            <div class="metric-content">
+                <div class="metric-val" id="ovWaterNext">—</div>
+                <div class="metric-label">Water Status</div>
+                <div class="metric-desc" id="ovWaterSub">Schedule not set</div>
+            </div>
+            <div class="metric-tag" id="ovWaterTag">On Track</div>
+        </div>
+        <div class="metric-divider"></div>
+        <div class="metric-item">
+            <div class="metric-icon metric-icon-sun">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+            </div>
+            <div class="metric-content">
+                <div class="metric-val" id="ovSunPreference">—</div>
+                <div class="metric-label">Sunlight</div>
+                <div class="metric-desc">Recommended exposure</div>
+            </div>
+            <div class="metric-tag metric-tag-sun" id="ovSunTag">Optimal</div>
+        </div>
+        <div class="metric-divider"></div>
+        <div class="metric-item">
+            <div class="metric-icon metric-icon-disease">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+            <div class="metric-content">
+                <div class="metric-val" id="ovDiseaseStatus">No Issues</div>
+                <div class="metric-label">Disease Status</div>
+                <div class="metric-desc" id="ovDiseaseSub">Last scan: never</div>
+            </div>
+            <div class="metric-tag metric-tag-success" id="ovDiseaseTag">Healthy</div>
+        </div>
+    </div>
+
+    <!-- ══ TABS ═══════════════════════════════════════════════════════════ -->
+    <div class="plant-tabs-bar">
+        <button class="ptab active" data-tab="overview">Overview</button>
+        <button class="ptab" data-tab="timeline">Timeline</button>
+        <button class="ptab" data-tab="chat">AI Chat</button>
+        <button class="ptab" data-tab="careplan">Care Plan</button>
+    </div>
+
+    <!-- ══ PANELS ═════════════════════════════════════════════════════════ -->
+    <div class="plant-panels-wrap">
+
+        <!-- ── OVERVIEW ──────────────────────────────────────────────────── -->
+        <div class="plant-panel active" id="panel-overview">
+
+            <!-- ── HERO BLOCK: Health Ring + Status Badge ── -->
+            <div class="ov-hero-block">
+                <div class="ov-health-ring-wrap">
+                    <svg class="ov-ring-svg" viewBox="0 0 160 160">
+                        <circle class="ov-ring-bg" cx="80" cy="80" r="68"/>
+                        <circle class="ov-ring-fill" id="ovRingFill" cx="80" cy="80" r="68"
+                            stroke-dasharray="427"
+                            stroke-dashoffset="427"
+                            style="transition: stroke-dashoffset 1.2s cubic-bezier(.4,1.4,.6,1), stroke 0.5s ease;"/>
+                    </svg>
+                    <div class="ov-ring-center">
+                        <div class="ov-ring-score" id="ovRingScore">—</div>
+                        <div class="ov-ring-label">Health</div>
+                    </div>
+                </div>
+                <div class="ov-hero-info">
+                    <div class="ov-status-badge-wrap">
+                        <span class="ov-status-badge" id="ovStatusBadge">
+                            <span class="ov-status-dot" id="ovStatusDot"></span>
+                            <span id="ovStatusText">No Diagnosis Yet</span>
+                        </span>
+                    </div>
+                    <div class="ov-disease-label" id="ovDiseaseLabel">Run a diagnosis to get AI analysis</div>
+                    <div class="ov-confidence-row">
+                        <span class="ov-conf-chip" id="ovConfidenceChip" style="display:none">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.8 5.7L21 8.6l-4.5 4.4 1.1 6.4L12 16.8l-5.6 2.6 1.1-6.4L3 8.6l6.2-.9z"/></svg>
+                            <span id="ovConfidenceVal">99</span>% confidence
+                        </span>
+                        <span class="ov-scan-chip" id="ovLastScan">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                            Never scanned
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── 4 INSIGHT CARDS ── -->
+            <div class="ov-insight-grid">
+                <div class="ov-card ov-card-health">
+                    <div class="ov-card-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                    </div>
+                    <div class="ov-card-body">
+                        <div class="ov-card-title">Health</div>
+                        <div class="ov-card-val" id="ovCardHealth">—</div>
+                        <div class="ov-card-sub" id="ovCardHealthSub">Awaiting diagnosis</div>
+                    </div>
+                    <div class="ov-card-bar-wrap">
+                        <div class="ov-card-bar" id="ovCardHealthBar" style="width:0%"></div>
+                    </div>
+                </div>
+                <div class="ov-card ov-card-disease">
+                    <div class="ov-card-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    </div>
+                    <div class="ov-card-body">
+                        <div class="ov-card-title">Disease</div>
+                        <div class="ov-card-val" id="ovCardDisease">No Issues</div>
+                        <div class="ov-card-sub" id="ovCardDiseaseSub">No scan yet</div>
+                    </div>
+                    <span class="ov-card-chip badge badge-green" id="ovCardDiseaseChip">Healthy</span>
+                </div>
+                <div class="ov-card ov-card-water">
+                    <div class="ov-card-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C6 8 4 13 4 16a8 8 0 0016 0c0-3-2-8-8-14z"/></svg>
+                    </div>
+                    <div class="ov-card-body">
+                        <div class="ov-card-title">Watering</div>
+                        <div class="ov-card-val" id="ovCardWater">—</div>
+                        <div class="ov-card-sub" id="ovCardWaterSub">Schedule not set</div>
+                    </div>
+                    <span class="ov-card-chip" id="ovCardWaterChip">Not Set</span>
+                </div>
+                <div class="ov-card ov-card-sun">
+                    <div class="ov-card-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg>
+                    </div>
+                    <div class="ov-card-body">
+                        <div class="ov-card-title">Sunlight</div>
+                        <div class="ov-card-val" id="ovCardSun">—</div>
+                        <div class="ov-card-sub">Recommended exposure</div>
+                    </div>
+                    <span class="ov-card-chip ov-chip-sun">Optimal</span>
+                </div>
+            </div>
+
+            <!-- ── AI INSIGHT PANEL ── -->
+            <div class="ov-ai-panel">
+                <div class="ov-ai-panel-header">
+                    <span class="ov-ai-badge">🌿 AI Insight</span>
+                    <span class="ov-ai-powered">Powered by GrowZen AI</span>
+                </div>
+                <div class="ov-ai-text" id="ovAiInsight">Upload a photo and run a diagnosis to unlock AI-powered recommendations for your plant.</div>
+            </div>
+
+
+
+            <!-- ── MINI HEALTH TREND ── -->
+            <div class="ov-bottom-row" style="grid-template-columns: 1fr;">
+                <div class="ov-trend-card">
+                    <div class="ov-section-header" style="margin-bottom:10px">
+                        <h3 class="ov-section-title">Health Trend</h3>
+                        <button class="ov-view-all" onclick="window.location.href='/analytics'">Full Analytics →</button>
+                    </div>
+                    <div style="height:100px; position:relative;">
+                        <canvas id="ovMiniTrendChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ── PHOTO TIMELINE ─────────────────────────────────────────────── -->
+        <div class="plant-panel" id="panel-timeline">
+
+            <!-- Upload card -->
+            <div class="panel-section">
+                <div class="panel-section-header">
+                    <div>
+                        <h3 class="panel-section-title">Photo Timeline</h3>
+                        <p class="panel-section-sub">Track your plant's journey with AI analysis</p>
+                    </div>
+                    <div class="timeline-mode-tabs">
+                        <button class="tmode-btn active" data-mode="weekly">Weekly</button>
+                        <button class="tmode-btn" data-mode="custom">Custom</button>
+                        <button class="tmode-btn" data-mode="manual">Manual</button>
+                    </div>
+                </div>
+
+                <p class="timeline-desc" id="timelineDesc">Upload a weekly photo to track your plant's journey.</p>
+
+                <div class="timeline-upload-card" id="timelineUploadCard">
+                    <input type="text" id="timelineNoteInput" class="form-input" placeholder="Add an optional note before uploading..." style="margin-bottom: 16px; width: 100%; border: 1px solid var(--gray-300);">
+                    <input type="file" id="timelinePhotoInput" hidden accept="image/*" multiple>
+                    <div class="timeline-upload-modes">
+                        <div id="weeklyUploadUI" class="tlmode-ui">
+                            <div class="upload-drop-zone" id="dropZone">
+                                <div class="upload-drop-icon">
+                                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                                </div>
+                                <p class="upload-drop-text">Drag & drop or <span class="upload-browse-link">browse</span></p>
+                                <button class="btn btn-primary btn-sm" id="uploadWeeklyPhotoBtn">Upload This Week's Photo</button>
+                            </div>
+                        </div>
+                        <div id="customUploadUI" class="tlmode-ui" style="display:none;">
+                            <div class="custom-interval-row">
+                                <span>Upload every</span>
+                                <input type="number" id="customIntervalDays" class="form-input" min="1" max="90" value="14" style="width:70px; text-align:center;">
+                                <span>days</span>
+                                <button class="btn btn-primary btn-sm" id="uploadCustomBtn">Upload Now</button>
+                            </div>
+                        </div>
+                        <div id="manualUploadUI" class="tlmode-ui" style="display:none;">
+                            <div class="manual-upload-row">
+                                <button class="btn btn-ghost btn-sm" id="browseMultiBtn">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                                    Select Photos
+                                </button>
+                                <div class="manual-date-row">
+                                    <label>Photo Date</label>
+                                    <input type="date" id="manualPhotoDate" class="form-input" style="width:160px;">
+                                </div>
+                                <button class="btn btn-primary btn-sm" id="uploadManualBtn">Upload</button>
+                            </div>
+                            <div id="multiFilePreview" class="multi-file-preview"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="uploadingProgress" class="uploading-progress" style="display:none;">
+                    <div class="spinner"></div>
+                    <span id="uploadingProgressText">Analyzing photo with AI...</span>
+                </div>
+            </div>
+
+            <!-- Vertical Activity Timeline -->
+            <div class="panel-section" style="margin-top: 0;">
+                <div id="photoEmptyState" class="empty-state">
+                    <div class="empty-state-icon">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                    </div>
+                    <p>No photos yet. Upload your first photo above!</p>
+                </div>
+                <div class="activity-timeline" id="photoTimelineGrid"></div>
+            </div>
+        </div>
+
+
+        <!-- ── AI CHAT ════════════════════════════════════════════════════ -->
+        <div class="plant-panel" id="panel-chat">
+            <div class="chat-layout">
+                <!-- Chat Header -->
+                <div class="chat-header">
+                    <div class="chat-header-info">
+                        <div class="chat-avatar-ring">🌿</div>
+                        <div>
+                            <div class="chat-header-name">Plant AI — <span id="chatPlantName">Your Plant</span></div>
+                            <div class="chat-header-status">
+                                <span class="chat-online-dot"></span> AI Online
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Chips -->
+                <div class="chat-quick-chips">
+                    <button class="chat-chip" data-msg="What are the best watering tips for my plant?">💧 Watering Tips</button>
+                    <button class="chat-chip" data-msg="Give me fertilizer advice for my plant.">🌱 Fertilizer</button>
+                    <button class="chat-chip" data-msg="What are the symptoms and treatment for common diseases in my plant?">🦠 Disease Help</button>
+                    <button class="chat-chip" data-msg="How much sunlight does my plant need?">☀️ Sunlight</button>
+                    <button class="chat-chip" data-msg="What pruning steps should I follow for my plant?">✂️ Pruning</button>
+                </div>
+
+                <!-- Messages -->
+                <div class="chat-messages" id="plantChatMessages">
+                    <div class="chat-msg chat-msg-ai">
+                        <div class="chat-msg-avatar">🌿</div>
+                        <div class="chat-msg-bubble">
+                            Hi! I'm your personal plant AI. Ask me anything about care, diseases, watering, or growth!
+                            <div class="chat-msg-time">Now</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Typing indicator (hidden by default) -->
+                <div class="chat-typing" id="chatTyping" style="display:none;">
+                    <div class="chat-msg-avatar">🌿</div>
+                    <div class="chat-typing-bubble">
+                        <span class="typing-dot"></span>
+                        <span class="typing-dot"></span>
+                        <span class="typing-dot"></span>
+                    </div>
+                </div>
+
+                <!-- Input -->
+                <div class="chat-input-row">
+                    <input type="text" id="plantChatInput" class="chat-input" placeholder="Ask about watering, growth, diseases...">
+                    <button class="chat-send-btn" id="plantChatSend">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── CARE PLAN ══════════════════════════════════════════════════ -->
+        <div class="plant-panel" id="panel-careplan">
+
+            <!-- Today's Tasks -->
+            <div class="panel-section">
+                <div class="panel-section-header">
+                    <div>
+                        <h3 class="panel-section-title">Today's Tasks</h3>
+                        <p class="panel-section-sub">Keep your plant thriving with daily care</p>
+                    </div>
+                    <div class="task-progress-wrap">
+                        <div class="task-progress-bar-track">
+                            <div class="task-progress-bar-fill" id="taskProgressFill" style="width:0%"></div>
+                        </div>
+                        <span id="taskProgressBadge" class="task-progress-label">0 of 3 done</span>
+                    </div>
+                </div>
+
+                <div class="task-list" id="dailyTasksList">
+                    <div class="empty-state-sm">Loading today's tasks...</div>
+                </div>
+            </div>
+
+            <!-- Treatment Checklist and AI Feedback -->
+            <div id="treatmentSection" class="panel-section" style="display:none;">
+                <div class="panel-section-header">
+                    <h3 class="panel-section-title">Active Treatment Checkpoints</h3>
+                    <span id="carePlanProgressBadge" class="badge badge-amber">Loading...</span>
+                </div>
+                <ul class="treatment-checklist" id="carePlanTreatmentList"></ul>
+            </div>
+
+            <!-- Watering Schedule -->
+            <div class="panel-section">
+                <div class="panel-section-header">
+                    <h3 class="panel-section-title">Watering Schedule</h3>
+                </div>
+                <div class="careplan-info-row">
+                    <div class="careplan-info-item">
+                        <div class="careplan-info-val" id="cpWatering">Every 7 days</div>
+                        <div class="careplan-info-label">Frequency</div>
+                    </div>
+                    <div class="careplan-info-item">
+                        <div class="careplan-info-val" id="cpNextWater">—</div>
+                        <div class="careplan-info-label">Next Due</div>
+                    </div>
+                </div>
+                <div class="careplan-edit-row">
+                    <label class="form-label">Change interval:</label>
+                    <input type="number" id="cpWaterFreqEdit" class="form-input" min="1" max="30" value="7" style="width:70px; text-align:center;">
+                    <span class="form-label">days</span>
+                    <button class="btn btn-ghost btn-sm" id="saveWaterFreq">Save</button>
+                </div>
+            </div>
+
+            <!-- Weather Card -->
+            <div class="panel-section plant-weather-card">
+                <div class="panel-section-header">
+                    <h3 class="panel-section-title">Current Weather</h3>
+                </div>
+                <div id="plantWeatherBody">
+                    <div style="color:var(--gray-400);font-size:13px;">Detecting weather...</div>
+                </div>
+            </div>
+
+            <!-- AI Smart Recommendations -->
+            <div class="panel-section smart-reco-card" id="smartRecoCard">
+                <div class="panel-section-header">
+                    <div>
+                        <h3 class="panel-section-title">AI Recommendations</h3>
+                        <p class="panel-section-sub">Weather-adaptive care tips for your plant</p>
+                    </div>
+                    <div class="smart-reco-badge">AI</div>
+                </div>
+                <div class="smart-reco-body" id="smartRecoBody">Loading smart care recommendations...</div>
+            </div>
+
+            <!-- Reminders -->
+            <div class="panel-section reminder-panel">
+                <div class="panel-section-header">
+                    <h3 class="panel-section-title">Care Reminders</h3>
+                    <button class="btn btn-ghost btn-sm" id="toggleReminderForm">+ Add Reminder</button>
+                </div>
+                <div class="reminder-form" id="reminderFormWrap" style="display:none;">
+                    <div class="form-row" style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                        <div class="form-group">
+                            <label class="form-label">Start Date</label>
+                            <input type="date" id="reminderDate" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Time</label>
+                            <input type="time" id="reminderTime" class="form-input" value="08:00">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Repeat Schedule</label>
+                        <select id="reminderRepeat" class="form-select">
+                            <option value="daily">Every Day</option>
+                            <option value="every_3_days">Every 3 Days</option>
+                            <option value="weekly" selected>Every Week</option>
+                            <option value="custom">Custom Days</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Notification Type</label>
+                        <div class="reminder-type-tabs">
+                            <button class="reminder-type-btn selected" data-type="in_app">In-App</button>
+                            <button class="reminder-type-btn" data-type="telegram">Telegram</button>
+                        </div>
+                    </div>
+                    <div class="form-group" id="telegramFieldWrap" style="display:none;">
+                        <label class="form-label">Telegram Chat ID</label>
+                        <input type="text" id="reminderTelegramChatId" class="form-input" placeholder="e.g. 123456789">
+                        <p class="form-help" style="font-size:10px; color:var(--gray-500); margin-top:4px;">Find your ID by messaging @userinfobot on Telegram</p>
+                    </div>
+                    <button class="btn btn-primary" id="saveReminderBtn" style="width:100%; justify-content:center;">Save Reminder</button>
+                </div>
+                <div class="active-reminders" id="activeReminders">
+                    <div class="active-reminder-title">Active Reminders</div>
+                    <div id="remindersList2">
+                        <div style="color:var(--gray-400); font-size:13px; padding:12px 0;">No reminders set yet.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Health Diagnosis -->
+            <div class="panel-section health-check-section">
+                <div class="panel-section-header">
+                    <div>
+                        <h3 class="panel-section-title" id="diagTitle">Plant Health Diagnosis</h3>
+                        <p class="panel-section-sub" id="diagSubtitle">Upload a leaf photo for an interactive AI diagnosis</p>
+                    </div>
+                </div>
+
+                <!-- STEP 1: UPLOAD -->
+                <div id="diagStep1" class="diagnosis-step active">
+                    <div class="upload-drop-zone upload-drop-zone-sm">
+                        <button class="btn btn-primary" id="uploadHealthBtn">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                            Upload Leaf Photo
+                        </button>
+                        <input type="file" id="healthPhotoInput" hidden accept="image/*">
+                    </div>
+                </div>
+
+                <!-- STEP 2: QUESTIONNAIRE -->
+                <div id="diagStep2" class="diagnosis-step">
+                    <div id="diagQuestions">
+                        <div class="q-row">
+                            <label class="q-label">When did the issue start?</label>
+                            <div class="q-options" data-key="issue_start">
+                                <div class="q-opt" data-val="today">Today</div>
+                                <div class="q-opt" data-val="few_days">Few days ago</div>
+                                <div class="q-opt" data-val="week">A week ago</div>
+                                <div class="q-opt" data-val="month">Over a month</div>
+                            </div>
+                        </div>
+                        <div class="q-row">
+                            <label class="q-label">Where is the plant kept?</label>
+                            <div class="q-options" data-key="indoor_outdoor">
+                                <div class="q-opt" data-val="indoor">Indoor</div>
+                                <div class="q-opt" data-val="outdoor">Outdoor</div>
+                            </div>
+                        </div>
+                        <div class="q-row">
+                            <label class="q-label">Primary leaf condition?</label>
+                            <div class="q-options" data-key="leaf_condition" style="grid-template-columns: repeat(2, 1fr);">
+                                <div class="q-opt" data-val="dry">Dry/Crispy</div>
+                                <div class="q-opt" data-val="spotted">Brown Spots</div>
+                                <div class="q-opt" data-val="soft">Soft/Mushy</div>
+                                <div class="q-opt" data-val="yellow">Yellowing</div>
+                            </div>
+                        </div>
+                        <div class="q-row" style="margin-top:20px;">
+                            <label class="q-label">Diagnosis Notes (Optional)</label>
+                            <textarea id="diagUserNotes" class="form-input" placeholder="Add any observations or notes for the timeline..." style="width:100%; min-height:80px; padding:12px; margin-top:8px; border:1px solid var(--gray-300); border-radius:8px; font-family:inherit;"></textarea>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" id="refineDiagnosisBtn" style="width:100%; justify-content:center; margin-top:16px;">Refine Diagnosis</button>
+                </div>
+
+                <!-- STEP 3: RESULTS -->
+                <div id="diagStep3" class="diagnosis-step">
+                    <div class="health-result-box" id="healthResultBox">
+                        <div class="hr-grid">
+                            <div class="hr-item">
+                                <div class="hr-label">Plant</div>
+                                <div class="hr-val" id="hrPlant">—</div>
+                            </div>
+                            <div class="hr-item">
+                                <div class="hr-label">Diagnosis</div>
+                                <div class="hr-val" id="hrDiagnosis">—</div>
+                            </div>
+                            <div class="hr-item">
+                                <div class="hr-label">Health Status</div>
+                                <div class="hr-val" id="hrStatus">—</div>
+                            </div>
+                            <div class="hr-item">
+                                <div class="hr-label">Confidence</div>
+                                <div class="hr-val" id="hrConfidence">—</div>
+                            </div>
+                            <div class="hr-item">
+                                <div class="hr-label">Severity</div>
+                                <div class="hr-val" id="hrSeverity">—</div>
+                            </div>
+                            <div class="hr-item">
+                                <div class="hr-label">Health Score</div>
+                                <div class="hr-val hr-score" id="hrFinalScore">—</div>
+                            </div>
+                        </div>
+                        <div class="hr-treatment">
+                            <div class="hr-label">Treatment Plan</div>
+                            <ul class="treatment-checklist" id="hrTreatmentList"></ul>
+                        </div>
+                        <button class="btn btn-ghost btn-sm" id="resetDiagnosisBtn" style="margin-top:16px;">Diagnose Another Photo</button>
+                    </div>
+                </div>
+
+                <!-- Loading -->
+                <div id="diagLoading" style="display:none; padding:28px;">
+                    <div class="diag-progress-label" id="diagProgressLabel">Initializing analysis...</div>
+                    <div class="diag-progress-bar-wrap">
+                        <div class="diag-progress-bar" id="diagProgressBar" style="width:0%"></div>
+                    </div>
+                    <div class="diag-steps">
+                        <div class="diag-step" id="dstep1"><div class="diag-step-dot"></div><div class="diag-step-text">Analyzing leaf patterns...</div></div>
+                        <div class="diag-step" id="dstep2"><div class="diag-step-dot"></div><div class="diag-step-text">Matching disease database...</div></div>
+                        <div class="diag-step" id="dstep3"><div class="diag-step-dot"></div><div class="diag-step-text">Generating treatment plan...</div></div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <!-- end careplan panel -->
+    </div>
+    <!-- end panels-wrap -->
+
+    <!-- TOAST -->
+    <div id="toast" class="toast hidden"></div>
+    <div id="globalToast" class="toast hidden"></div>
+
+    <!-- FLOATING AI BUTTON -->
+    <button id="floatingAiBtn" class="floating-ai-btn" title="Ask the AI Plant Doctor">
+        <span class="floating-ai-icon">🌿</span>
+        <span class="floating-ai-label">Plant Doctor</span>
+    </button>
+
+    <script src="{{ url_for('static', filename='js/weather.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/plant.js') }}"></script>
+</body>
+
+</html>

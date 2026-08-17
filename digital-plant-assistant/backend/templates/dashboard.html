@@ -1,0 +1,269 @@
+{% extends "base.html" %}
+{% block title %}Dashboard – GrowZen{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/weather-widget.css') }}">
+{% endblock %}
+
+{% block content %}
+<script>
+  // DASHBOARD PROTECTION
+  (function() {
+    const user = JSON.parse(localStorage.getItem("user"));
+    console.log("User:", localStorage.getItem("user"));
+    if (!user) {
+      window.location.href = "/login";
+    }
+  })();
+</script>
+<div class="db-page">
+
+    <!-- ── PAGE TOP BAR ──────────────────────────────────────────── -->
+    <div class="db-topbar">
+        <div class="db-topbar-left">
+            <h1 class="db-page-title">My Garden</h1>
+            <p class="db-page-sub" id="gardenSubtitle">Loading your plants...</p>
+        </div>
+        <div class="db-topbar-right">
+            <!-- Streak Badge -->
+            <div class="db-streak-badge" id="streakBadge">
+                <span class="streak-flame">🔥</span>
+                <span id="streakCount">0</span> day streak
+            </div>
+            <!-- XP Level -->
+            <div class="db-xp-block">
+                <div class="db-xp-label-row">
+                    <span id="levelBadge" class="db-level-label">🌱 Rookie</span>
+                    <span class="db-xp-points"><span id="statXp">0</span> XP</span>
+                </div>
+                <div class="db-xp-bar-track">
+                    <div class="db-xp-bar-fill" id="xpBarFill" style="width:0%"></div>
+                </div>
+            </div>
+            <button class="btn btn-primary" id="addPlantBtn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Add Plant
+            </button>
+        </div>
+    </div>
+
+    <!-- ── GARDEN SUMMARY ROW ────────────────────────────────────── -->
+    <div class="db-summary-row" id="gardenStats" style="display:none;">
+        <div class="db-stat-card">
+            <div class="db-stat-icon db-icon-total">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+            <div class="db-stat-body">
+                <div class="db-stat-val" id="statTotal">0</div>
+                <div class="db-stat-label">Total Plants</div>
+            </div>
+        </div>
+        <div class="db-stat-card">
+            <div class="db-stat-icon db-icon-healthy">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div class="db-stat-body">
+                <div class="db-stat-val db-val-green" id="statHealthy">0</div>
+                <div class="db-stat-label">Healthy</div>
+            </div>
+        </div>
+
+        <div class="db-stat-card">
+            <div class="db-stat-icon db-icon-avg">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            </div>
+            <div class="db-stat-body">
+                <div class="db-stat-val db-val-blue" id="statAvgHealth">0%</div>
+                <div class="db-stat-label">Avg. Health</div>
+            </div>
+        </div>
+        <div class="db-stat-card">
+            <div class="db-stat-icon db-icon-water" style="background:#eff6ff; color:#3b82f6;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C6 8 4 13 4 16a8 8 0 0016 0c0-3-2-8-8-14z"/></svg>
+            </div>
+            <div class="db-stat-body">
+                <div class="db-stat-val" id="statConsistency" style="color:#3b82f6;">0%</div>
+                <div class="db-stat-label">Water Consistency</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── TWO-COLUMN WIDGETS ────────────────────────────────────── -->
+    <div class="db-widgets-row" id="widgetRow" style="display:none;">
+
+        <!-- Pending Plants Tasks -->
+        <div class="db-widget-card db-tasks-card">
+            <div class="db-widget-header">
+                <div>
+                    <div class="db-widget-title">Action Required</div>
+                    <div class="db-widget-sub">Plants with pending tasks</div>
+                </div>
+                <span id="tasksBadge" class="db-tasks-badge">0</span>
+            </div>
+            <div id="pendingPlantsList" class="db-tasks-list">
+                <div class="db-task-empty">All plants are healthy and up to date 🌱</div>
+            </div>
+        </div>
+
+        <!-- Weather + AI Tip -->
+        <div class="db-widget-card">
+            <div class="db-widget-header">
+                <div>
+                    <div class="db-widget-title">Weather & AI Tip</div>
+                    <div class="db-widget-sub" id="weatherCityLabel">Detecting location...</div>
+                </div>
+                <button class="btn btn-ghost btn-sm" onclick="document.getElementById('locationFormRow').style.display='flex'">📍</button>
+            </div>
+            <div id="weatherWidgetBody">
+                <div class="db-widget-loading">Fetching weather...</div>
+            </div>
+            <div id="locationFormRow" style="display:none; margin-top:10px;" class="weather-location-form">
+                <input type="text" id="cityInput" class="weather-location-input" placeholder="Enter city name...">
+                <button class="btn btn-primary btn-sm" id="citySubmitBtn">Go</button>
+            </div>
+            <div class="db-ai-tip-block" id="aiTipBlock" style="display:none;">
+                <div class="db-ai-tip-label">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    AI Garden Tip
+                </div>
+                <div class="db-ai-tip-text" id="aiTipText">Loading tip...</div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ── PLANTS SECTION HEADER ─────────────────────────────────── -->
+    <div class="db-section-header" id="plantsSectionHeader" style="display:none;">
+        <div>
+            <h2 class="db-section-title">Your Plants</h2>
+            <p class="db-section-sub" id="plantsSubLabel">All your garden plants</p>
+        </div>
+        <div class="db-section-actions">
+            <div class="db-filter-tabs">
+                <button class="db-filter-btn active" data-filter="all">All</button>
+                <button class="db-filter-btn" data-filter="healthy">Healthy</button>
+                <button class="db-filter-btn" data-filter="monitor">Monitor</button>
+                <button class="db-filter-btn" data-filter="sick">Sick</button>
+            </div>
+            <button class="btn btn-ghost btn-sm" id="addPlantBtnSecondary">+ Add Plant</button>
+        </div>
+    </div>
+
+    <!-- ── PLANT GRID ─────────────────────────────────────────────── -->
+    <div class="plant-grid" id="plantGrid" style="display:none;"></div>
+
+    <!-- ── LOADING / EMPTY STATES ────────────────────────────────── -->
+    <div class="db-loading-state" id="loadingState">
+        <div class="spinner"></div>
+        <p>Loading your garden...</p>
+    </div>
+
+    <div class="db-empty-state" id="emptyState" style="display:none;">
+        <div class="db-empty-icon">🌱</div>
+        <h2>Your garden is empty</h2>
+        <p>Scan your first plant with our AI to start tracking your garden.</p>
+        <button class="btn btn-primary btn-lg" id="emptyAddBtn">+ Scan Your First Plant</button>
+    </div>
+
+</div>
+
+<!-- ── ADD PLANT MODAL ─────────────────────────────────────────── -->
+<div class="modal-overlay hidden" id="addPlantModal">
+    <div class="modal-box" style="width:560px; padding:0; overflow:hidden;">
+        <!-- STEP 1: UPLOAD -->
+        <div id="uploadStep">
+            <div class="upload-modal-header">
+                <div>
+                    <h2 style="margin:0; font-size:18px; font-weight:700;">Add Plant to Garden</h2>
+                    <p style="margin:4px 0 0; font-size:13px; color:#6b7280;">Upload a photo and our AI will identify it instantly</p>
+                </div>
+                <button class="modal-close" id="closeAddModal">×</button>
+            </div>
+            <div class="upload-drop-zone" id="dropZone">
+                <input type="file" id="plantFileInput" hidden accept="image/*">
+                <div class="upload-drop-icon">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                </div>
+                <h3 style="font-size:15px; font-weight:600; color:#374151; margin:0 0 4px;">Drag & drop or <button class="upload-link-btn" id="browseBtn">browse</button></h3>
+                <p class="upload-hint">JPG, PNG, WEBP — our AI will identify the species instantly</p>
+            </div>
+        </div>
+        <!-- STEP 2: DETECTING -->
+        <div id="previewStep" style="display:none;">
+            <div class="upload-modal-header">
+                <h2 style="margin:0; font-size:18px; font-weight:700;">Identifying Plant...</h2>
+                <button class="modal-close" id="closePreviewModal">×</button>
+            </div>
+            <div class="upload-preview-area">
+                <img id="previewImg" class="upload-preview-img" src="" alt="Preview">
+                <div class="upload-detecting-bar" id="detectingBar">
+                    <div class="spinner"></div>
+                    <span id="detectingText">Analyzing plant species...</span>
+                </div>
+            </div>
+        </div>
+        <!-- STEP 3: CONFIRM -->
+        <div id="confirmStep" style="display:none;">
+            <div class="upload-modal-header">
+                <h2 style="margin:0; font-size:18px; font-weight:700;">Plant Identified! 🎉</h2>
+                <button class="modal-close" id="closeConfirmModal">×</button>
+            </div>
+            <div class="confirm-body">
+                <img id="confirmPreviewImg" class="confirm-plant-img" src="" alt="">
+                <div class="confirm-detection-result" style="align-items:flex-start; margin-bottom:16px;">
+                    <div style="flex:1;">
+                        <span class="badge badge-green" id="confidenceBadge" style="margin-bottom:4px; display:inline-block;">98% match</span>
+                        <div class="confirm-plant-name" id="confirmedPlantName">Monstera Deliciosa</div>
+                        <div class="confirm-plant-sci" id="confirmedPlantSci">Monstera deliciosa</div>
+                    </div>
+                    
+                    <!-- NEW: Disease & Health Overview -->
+                    <div style="background:#f9fafb; border:1px solid #e5e8ec; border-radius:8px; padding:10px 14px; text-align:right;">
+                        <div style="font-size:11px; font-weight:700; color:#6b7280; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:2px;">AI Health Scan</div>
+                        <div id="confirmDiseaseName" style="font-size:14px; font-weight:600; color:#111827;">Healthy</div>
+                        <div style="font-size:12px; color:#6b7280; margin-top:1px;">
+                            Score: <span id="confirmHealthScore" style="font-weight:600; color:#16a34a;">100%</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="confirm-fields">
+                    <div class="form-group">
+                        <label class="form-label">Plant nickname <span style="color:#9ca3af">(optional)</span></label>
+                        <input type="text" id="nicknameInput" class="form-input" placeholder="e.g. My Living Room Monstera">
+                    </div>
+                    <div class="confirm-two-col">
+                        <div class="form-group">
+                            <label class="form-label">Location</label>
+                            <select id="locationInput" class="form-select">
+                                <option value="Indoor">Indoor</option>
+                                <option value="Outdoor">Outdoor</option>
+                                <option value="Balcony">Balcony</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Pot size</label>
+                            <select id="potSizeInput" class="form-select">
+                                <option value="Small">Small (4–6 in)</option>
+                                <option value="Medium" selected>Medium (8–10 in)</option>
+                                <option value="Large">Large (12+ in)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div style="display:flex; gap:10px; margin-top:20px;">
+                    <button class="btn btn-ghost" id="scanAgainBtn" style="flex:1; justify-content:center;">Scan Again</button>
+                    <button class="btn btn-primary" id="addToGardenBtn" style="flex:2; justify-content:center;">🌿 Save to Garden</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="toast" class="toast hidden"></div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/weather.js') }}"></script>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}GrowZen{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/design-system.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/sidebar.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/settings.css') }}">
+    {% block head %}{% endblock %}
+</head>
+
+<body>
+
+    <div class="app-layout">
+
+        <!-- ===== SIDEBAR ===== -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-top">
+                <div class="sidebar-logo">
+                    <span class="sidebar-logo-icon">🌱</span>
+                    <span class="sidebar-logo-text">GrowZen</span>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="/dashboard" class="nav-item" id="nav-dashboard">
+                    <span class="nav-icon">⊞</span> Dashboard
+                </a>
+                <a href="/dashboard" class="nav-item" id="nav-garden">
+                    <span class="nav-icon">🌿</span> My Garden
+                </a>
+                <a href="#" class="nav-item" id="globalScannerBtn">
+                    <span class="nav-icon">📷</span> Plant Scanner
+                </a>
+                <a href="/community" class="nav-item" id="nav-community">
+                    <span class="nav-icon">💬</span> Community
+                </a>
+
+                <a href="/analytics" class="nav-item" id="nav-analytics">
+                    <span class="nav-icon">📈</span> Analytics
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="sidebar-user" id="sidebarProfileBtn">
+                    <div class="sidebar-avatar" id="sidebarAvatarEl">🌱</div>
+                    <div class="sidebar-user-info">
+                        <span class="sidebar-user-name" id="sidebarUsername">User</span>
+                        <span class="sidebar-user-level" id="sidebarLevel">Rookie</span>
+                    </div>
+                </div>
+                <!-- XP + Streak block -->
+                <div class="sidebar-xp-block">
+                    <div class="sidebar-xp-row">
+                        <span class="sidebar-streak" id="sidebarStreak">🔥 0 day streak</span>
+                        <span class="sidebar-xp-pts" id="sidebarXpPts">0 XP</span>
+                    </div>
+                    <div class="sidebar-xp-track">
+                        <div class="sidebar-xp-fill" id="sidebarXpFill" style="width:0%"></div>
+                    </div>
+                </div>
+                <div class="sidebar-footer-links">
+                    <a href="#" class="nav-item nav-item-sm" id="sidebarSettingsBtn">
+                        <span class="nav-icon">⚙️</span> Settings
+                    </a>
+                    <a href="#" class="nav-item nav-item-sm" id="sidebarLogoutBtn">
+                        <span class="nav-icon">←</span> Log out
+                    </a>
+                </div>
+            </div>
+        </aside>
+
+
+        <!-- ===== MAIN CONTENT ===== -->
+        <main class="main-content">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <!-- ===== AI CHATBOT ===== -->
+    <div id="globalChatbot" class="global-chatbot">
+        <button id="chatbotToggle" class="chatbot-toggle" title="AI Plant Assistant">
+            <span>🌿</span>
+        </button>
+        <div id="chatbotWindow" class="chatbot-window hidden">
+            <div class="chat-header">
+                <div>
+                    <h3>GrowZen AI</h3>
+                    <p>Plant care assistant</p>
+                </div>
+                <button id="closeChatBtn" class="modal-close">×</button>
+            </div>
+            <div class="chat-body" id="chatBody">
+                <div class="chat-msg ai-msg">
+                    <div class="chat-avatar">🌱</div>
+                    <div class="chat-bubble">Hello! Ask me any plant care question — watering, diseases, growth tips.
+                    </div>
+                </div>
+            </div>
+            <div class="chat-input-area">
+                <input type="text" id="chatInput" class="form-input" placeholder="Ask about plants...">
+                <button id="sendChatBtn" class="btn btn-primary btn-sm">→</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== SETTINGS MODAL ===== -->
+    <div id="settingsModal" class="modal-overlay hidden">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h2>Profile Settings</h2>
+                <button id="closeSettingsBtn" class="modal-close">×</button>
+            </div>
+            <div class="settings-avatar-row">
+                <div class="settings-avatar-wrap">
+                    <img id="settingsAvatarPreview"
+                        src="https://ui-avatars.com/api/?name=User&background=d1fae5&color=166534&size=80" alt="Avatar"
+                        class="settings-avatar-img">
+                    <button class="btn btn-ghost btn-sm"
+                        onclick="document.getElementById('avatarUpload').click()">Change Photo</button>
+                    <input type="file" id="avatarUpload" hidden accept="image/*">
+                </div>
+            </div>
+            <div class="settings-form">
+                <div class="form-group">
+                    <label class="form-label">Display Name</label>
+                    <input type="text" id="settingsName" class="form-input" placeholder="Your Name">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">New Password <span style="color:var(--gray-400)">(optional)</span></label>
+                    <input type="password" id="settingsPassword" class="form-input" placeholder="••••••••">
+                </div>
+                <div class="settings-stats-row">
+                    <div class="settings-stat">
+                        <div id="settingsPlantsCount" class="settings-stat-val">0</div>
+                        <div class="settings-stat-label">Plants</div>
+                    </div>
+                    <div class="settings-stat">
+                        <div id="settingsStreak" class="settings-stat-val">0</div>
+                        <div class="settings-stat-label">Day Streak</div>
+                    </div>
+                    <div class="settings-stat">
+                        <div id="settingsXp" class="settings-stat-val">0</div>
+                        <div class="settings-stat-label">XP Points</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" id="saveSettingsBtn" style="width:100%;">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== TOAST ===== -->
+    <div id="globalToast" class="toast hidden"></div>
+
+    <script src="{{ url_for('static', filename='js/sidebar.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/chatbot.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/settings.js') }}"></script>
+    {% block scripts %}{% endblock %}
+
+    <script>
+        // Highlight active nav
+        const path = window.location.pathname;
+        document.querySelectorAll('.nav-item[id]').forEach(el => {
+            el.classList.remove('active');
+        });
+        if (path === '/dashboard') document.getElementById('nav-dashboard')?.classList.add('active');
+        else if (path === '/garden') document.getElementById('nav-garden')?.classList.add('active');
+        else if (path === '/community') document.getElementById('nav-community')?.classList.add('active');
+
+        else if (path === '/analytics') document.getElementById('nav-analytics')?.classList.add('active');
+    </script>
+
+</body>
+
+</html>

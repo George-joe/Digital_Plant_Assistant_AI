@@ -1,0 +1,71 @@
+# =============================================================
+# GrowZen — .gitignore
+# =============================================================
+
+# ── Secrets ──────────────────────────────────────────────────
+.env
+*.env
+
+# ── Virtual Environments ─────────────────────────────────────
+plantai/
+digital-plant-assistant/backend/venv/
+venv/
+venv2/
+env/
+
+# ── Python cache ─────────────────────────────────────────────
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pycache
+
+# ── IDE & Editor ─────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ── Training dataset (724 MB — too large for GitHub) ─────────
+ai/plant-disease-model/dataset/
+
+# ── User-uploaded images (personal data, ephemeral) ──────────
+digital-plant-assistant/backend/static/uploads/
+static/uploads/
+uploads/
+
+# ── Local SQLite databases ───────────────────────────────────
+# (Each deployment creates its own fresh database)
+instance/
+digital-plant-assistant/backend/instance/
+digital-plant-assistant/instance/
+*.db
+*.sqlite
+*.sqlite3
+
+# ── Logs ─────────────────────────────────────────────────────
+*.log
+
+# ── OS artifacts ─────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── Temporary test/scratch files ─────────────────────────────
+noisy_leaf.jpg
+test_leaf.jpg
+classes.txt
+classes_list.txt
+report/
+
+# ── Build artifacts ──────────────────────────────────────────
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# NOTE: The following are intentionally NOT ignored:
+#   ai/plant-disease-model/model/plant_disease_model.keras  (28 MB — required to run)
+#   ai/plant-disease-model/model/class_indices.json
+#   All templates, CSS, JS, Python source files
+#   requirements.txt, render.yaml, .env.example

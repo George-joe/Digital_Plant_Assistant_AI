@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% block title %}Marketplace – GrowZen{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/marketplace.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="marketplace-page">
+
+    <div class="mp-header">
+        <h1>🛒 Marketplace</h1>
+        <div class="badge badge-green">🚚 Free shipping on orders $25+</div>
+    </div>
+
+    <!-- TOOLBAR -->
+    <div class="mp-toolbar">
+        <div class="mp-search-wrap">
+            <span class="mp-search-icon">🔍</span>
+            <input type="text" class="mp-search-input" id="searchInput"
+                placeholder="Search plants, soil, fertilizers...">
+        </div>
+        <select class="mp-filter-select" id="priceFilter">
+            <option value="">All Prices</option>
+            <option value="0-10">Under $10</option>
+            <option value="10-25">$10 – $25</option>
+            <option value="25-50">$25 – $50</option>
+            <option value="50+">$50+</option>
+        </select>
+        <select class="mp-filter-select" id="ratingFilter">
+            <option value="">All Ratings</option>
+            <option value="4">4★ & up</option>
+            <option value="3">3★ & up</option>
+        </select>
+    </div>
+
+    <!-- CATEGORIES -->
+    <div class="mp-categories" id="mpCategories">
+        <button class="mp-cat-btn active" data-cat="All">All</button>
+        <button class="mp-cat-btn" data-cat="Soil & Compost">Soil</button>
+        <button class="mp-cat-btn" data-cat="Fertilizers">Fertilizers</button>
+        <button class="mp-cat-btn" data-cat="Seeds">Seeds</button>
+        <button class="mp-cat-btn" data-cat="Pots & Planters">Pots</button>
+        <button class="mp-cat-btn" data-cat="Tools">Tools</button>
+        <button class="mp-cat-btn" data-cat="Live Plants">Live Plants</button>
+    </div>
+
+    <div class="mp-results-label" id="resultsLabel">Loading products...</div>
+
+    <!-- PRODUCT GRID -->
+    <div class="product-grid" id="productGrid"></div>
+
+</div>
+
+<!-- CHECKOUT MODAL -->
+<div class="modal-overlay hidden" id="checkoutModal">
+    <div class="modal-box checkout-modal">
+        <div class="modal-header">
+            <h2>Checkout</h2>
+            <button class="modal-close" id="closeCheckout">×</button>
+        </div>
+
+        <!-- STEPS INDICATOR -->
+        <div class="checkout-steps">
+            <div class="checkout-step active" id="cstep1">
+                <div class="checkout-step-num">1</div> Cart
+            </div>
+            <div class="checkout-divider"></div>
+            <div class="checkout-step" id="cstep2">
+                <div class="checkout-step-num">2</div> Shipping
+            </div>
+            <div class="checkout-divider"></div>
+            <div class="checkout-step" id="cstep3">
+                <div class="checkout-step-num">3</div> Done
+            </div>
+        </div>
+
+        <!-- STEP 1: CART -->
+        <div id="checkoutPage1">
+            <div id="cartItemsContainer"></div>
+            <div class="cart-total-row"
+                style="display:flex; justify-content:space-between; font-weight:700; font-size:16px; padding:14px 0; border-top:1px solid var(--gray-100); margin-top:8px;">
+                <span>Total</span>
+                <span id="cartTotal">$0.00</span>
+            </div>
+            <button class="btn btn-primary" style="width:100%; justify-content:center;" id="nextToShipping">Continue to
+                Shipping →</button>
+        </div>
+
+        <!-- STEP 2: SHIPPING -->
+        <div id="checkoutPage2" style="display:none;">
+            <div style="display:flex; flex-direction:column; gap:14px; margin-bottom:20px;">
+                <div class="form-group">
+                    <label class="form-label">Full Name</label>
+                    <input type="text" class="form-input" placeholder="John Doe">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Shipping Address</label>
+                    <input type="text" class="form-input" placeholder="123 Garden Street, City">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Card Number</label>
+                    <input type="text" class="form-input" placeholder="4242 4242 4242 4242" maxlength="19">
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                    <div class="form-group">
+                        <label class="form-label">Expiry</label>
+                        <input type="text" class="form-input" placeholder="MM / YY">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">CVV</label>
+                        <input type="text" class="form-input" placeholder="•••">
+                    </div>
+                </div>
+            </div>
+            <button class="btn btn-primary" style="width:100%; justify-content:center;" id="placeOrderBtn">🔒 Place
+                Order Securely</button>
+        </div>
+
+        <!-- STEP 3: SUCCESS -->
+        <div id="checkoutPage3" style="display:none; text-align:center; padding:20px 0;">
+            <div style="font-size:52px; margin-bottom:16px;">🎉</div>
+            <h3 style="font-size:22px; margin-bottom:8px;">Order Placed!</h3>
+            <p style="color:var(--gray-400); margin-bottom:24px;">Your order is confirmed and will ship in 2–5 business
+                days.</p>
+            <button class="btn btn-ghost" id="closeSuccessBtn">Back to Marketplace</button>
+        </div>
+
+    </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast" class="toast hidden"></div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/marketplace.js') }}"></script>
+{% endblock %}

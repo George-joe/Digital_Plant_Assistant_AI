@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Get Started – GrowZen</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/design-system.css') }}">
+  <style>
+    body {
+      background: linear-gradient(135deg, var(--green-50) 0%, white 60%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+
+    .ob-card {
+      background: white;
+      border-radius: 28px;
+      padding: 48px;
+      width: 520px;
+      max-width: 100%;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.08);
+      border: 1px solid var(--gray-100);
+      animation: slideUp 0.35s ease;
+    }
+
+    /* LOGO */
+    .ob-logo {
+      text-align: center;
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--primary);
+      margin-bottom: 32px;
+    }
+
+    /* PROGRESS */
+    .ob-progress {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 36px;
+    }
+
+    .ob-progress-bar {
+      flex: 1;
+      height: 4px;
+      background: var(--gray-200);
+      border-radius: 99px;
+      overflow: hidden;
+      transition: var(--transition-base);
+    }
+
+    .ob-progress-bar.done {
+      background: var(--primary);
+    }
+
+    .ob-progress-bar.active {
+      background: linear-gradient(90deg, var(--primary), var(--green-400));
+      animation: pulse 1.2s ease-in-out infinite;
+    }
+
+    /* STEP COUNTER */
+    .ob-step-label {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--gray-400);
+      margin-bottom: 10px;
+    }
+
+    /* STEP TITLE */
+    .ob-title {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--gray-900);
+      letter-spacing: -0.5px;
+      margin-bottom: 8px;
+    }
+
+    .ob-sub {
+      font-size: 14px;
+      color: var(--gray-400);
+      margin-bottom: 28px;
+      line-height: 1.6;
+    }
+
+    /* OPTIONS GRID */
+    .ob-options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 32px;
+    }
+
+    .ob-option {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      border: 1.5px solid var(--gray-200);
+      border-radius: 14px;
+      cursor: pointer;
+      transition: var(--transition-fast);
+      background: white;
+      text-align: left;
+      font-family: var(--font-sans);
+    }
+
+    .ob-option:hover {
+      border-color: var(--primary);
+      background: var(--green-50);
+    }
+
+    .ob-option.selected {
+      border-color: var(--primary);
+      background: var(--green-50);
+      box-shadow: 0 0 0 3px var(--primary-glow);
+    }
+
+    .ob-option-emoji {
+      font-size: 22px;
+    }
+
+    .ob-option-text {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--gray-800);
+    }
+
+    .ob-option-sub {
+      font-size: 12px;
+      color: var(--gray-400);
+      margin-top: 2px;
+    }
+
+    /* FOOTER */
+    .ob-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .ob-back-btn {
+      background: none;
+      border: none;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--gray-400);
+      cursor: pointer;
+      padding: 10px 0;
+      font-family: var(--font-sans);
+      transition: var(--transition-fast);
+    }
+
+    .ob-back-btn:hover {
+      color: var(--gray-700);
+    }
+
+    .ob-next-btn {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 12px 28px;
+      border-radius: var(--radius-full);
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: var(--transition-base);
+      font-family: var(--font-sans);
+    }
+
+    .ob-next-btn:hover {
+      background: var(--primary-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(26, 92, 55, 0.3);
+    }
+
+    .ob-next-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* ERROR */
+    .ob-error {
+      font-size: 13px;
+      color: var(--danger);
+      text-align: center;
+      margin-bottom: 8px;
+    }
+
+    /* STEP PANEL */
+    .ob-step {
+      display: none;
+    }
+
+    .ob-step.active {
+      display: block;
+      animation: fadeUp 0.25s ease;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="ob-card">
+    <div class="ob-logo">🌱 GrowZen</div>
+
+    <!-- PROGRESS BAR -->
+    <div class="ob-progress" id="obProgress">
+      <div class="ob-progress-bar active" id="pb0"></div>
+      <div class="ob-progress-bar" id="pb1"></div>
+      <div class="ob-progress-bar" id="pb2"></div>
+      <div class="ob-progress-bar" id="pb3"></div>
+      <div class="ob-progress-bar" id="pb4"></div>
+    </div>
+
+    <!-- STEP 1: Experience -->
+    <div class="ob-step active" id="step-0">
+      <div class="ob-step-label">Step 1 of 5</div>
+      <h1 class="ob-title">Your plant experience?</h1>
+      <p class="ob-sub">We'll customize your dashboard to match your skill level.</p>
+      <div class="ob-options">
+        <button class="ob-option" data-step="0" data-val="Beginner"><span class="ob-option-emoji">🌱</span>
+          <div>
+            <div class="ob-option-text">Beginner</div>
+            <div class="ob-option-sub">Just getting started</div>
+          </div>
+        </button>
+        <button class="ob-option" data-step="0" data-val="Hobby Gardener"><span class="ob-option-emoji">🪴</span>
+          <div>
+            <div class="ob-option-text">Hobby Gardener</div>
+            <div class="ob-option-sub">A few plants at home</div>
+          </div>
+        </button>
+        <button class="ob-option" data-step="0" data-val="Enthusiast"><span class="ob-option-emoji">🌿</span>
+          <div>
+            <div class="ob-option-text">Enthusiast</div>
+            <div class="ob-option-sub">I love my plants</div>
+          </div>
+        </button>
+        <button class="ob-option" data-step="0" data-val="Professional"><span class="ob-option-emoji">🌳</span>
+          <div>
+            <div class="ob-option-text">Professional</div>
+            <div class="ob-option-sub">Horticulture pro</div>
+          </div>
+        </button>
+      </div>
+      <div class="ob-error hidden" id="err-0"></div>
+      <div class="ob-footer">
+        <span></span>
+        <button class="ob-next-btn" id="next-0">Continue →</button>
+      </div>
+    </div>
+
+    <!-- STEP 2: Location -->
+    <div class="ob-step" id="step-1">
+      <div class="ob-step-label">Step 2 of 5</div>
+      <h1 class="ob-title">Where are your plants?</h1>
+      <p class="ob-sub">This helps us give the right care tips and watering schedules.</p>
+      <div class="ob-options">
+        <button class="ob-option" data-step="1" data-val="Indoor"><span class="ob-option-emoji">🏠</span>
+          <div>
+            <div class="ob-option-text">Indoor</div>
+            <div class="ob-option-sub">Windowsills and shelves</div>
+          </div>
+        </button>
+        <button class="ob-option" data-step="1" data-val="Balcony"><span class="ob-option-emoji">🏙</span>
+          <div>
+            <div class="ob-option-text">Balcony</div>
+            <div class="ob-option-sub">Pots on my balcony</div>
+          </div>
+        </button>
+        <button class="ob-option" data-step="1" data-val="Garden"><span class="ob-option-emoji">🌳</span>
+          <div>
+            <div class="ob-option-text">Garden</div>
+            <div class="ob-option-sub">Outdoors in a garden</div>
+          </div>
+        </button>
+        <button class="ob-option" data-step="1" data-val="Mixed"><span class="ob-option-emoji">🌐</span>
+          <div>
+            <div class="ob-option-text">Mixed</div>
+            <div class="ob-option-sub">Indoor and outdoor</div>
+          </div>
+        </button>
+      </div>
+      <div class="ob-error hidden" id="err-1"></div>
+      <div class="ob-footer">
+        <button class="ob-back-btn" id="back-1">← Back</button>
+        <button class="ob-next-btn" id="next-1">Continue →</button>
+      </div>
+    </div>
+
+    <!-- STEP 3: Plant types -->
+    <div class="ob-step" id="step-2">
+      <div class="ob-step-label">Step 3 of 5</div>
+      <h1 class="ob-title">What plants do you love?</h1>
+      <p class="ob-sub">We'll show you relevant care tips and product recommendations.</p>
+      <div class="ob-options">
+        <button class="ob-option" data-step="2" data-val="Indoor Plants"><span class="ob-option-emoji">🌿</span>
+          <div>
+            <div class="ob-option-text">Indoor Plants</div>
+            <div class="ob-option-sub">Monstera, Pothos...</div>
+          </div>
+        </button>
+        <button class="ob-option" data-step="2" data-val="Herbs"><span class="ob-option-emoji">🌿</span>
+          <div>
+            <div class="ob-option-text">Herbs</div>
+            <div class="ob-option-sub">Basil, mint, thyme...</div>
+          </div>
+        </button>
+        <button class="ob-option" data-step="2" data-val="Vegetables"><span class="ob-option-emoji">🥦</span>
+          <div>
+            <div class="ob-option-text">Vegetables</div>
+            <div class="ob-option-sub">Tomatoes, peppers...</div>
+          </div>
+        </button>
+        <button class="ob-option" data-step="2" data-val="Succulents"><span class="ob-option-emoji">🌵</span>
+          <div>
+            <div class="ob-option-text">Succulents & Cacti</div>
+            <div class="ob-option-sub">Easy-care beauties</div>
+          </div>
+        </button>
+      </div>
+      <div class="ob-error hidden" id="err-2"></div>
+      <div class="ob-footer">
+        <button class="ob-back-btn" id="back-2">← Back</button>
+        <button class="ob-next-btn" id="next-2">Continue →</button>
+      </div>
+    </div>
+
+    <!-- STEP 4: Time available -->
+    <div class="ob-step" id="step-3">
+      <div class="ob-step-label">Step 4 of 5</div>
+      <h1 class="ob-title">How often can you care for plants?</h1>
+      <p class="ob-sub">We'll set realistic care reminders that fit your schedule.</p>
+      <div class="ob-options">
+        <button class="ob-option" data-step="3" data-val="Daily"><span class="ob-option-emoji">📅</span>
+          <div>
+            <div class="ob-option-text">Daily</div>
+            <div class="ob-option-sub">A few minutes every day</div>
+          </div>
+        </button>
+        <button class="ob-option" data-step="3" data-val="Every few days"><span class="ob-option-emoji">🗓</span>
+          <div>
+            <div class="ob-option-text">Every few days</div>
+            <div class="ob-option-sub">2–3 times a week</div>
+          </div>
+        </button>
+        <button class="ob-option" data-step="3" data-val="Weekly"><span class="ob-option-emoji">📆</span>
+          <div>
+            <div class="ob-option-text">Weekly</div>
+            <div class="ob-option-sub">Once a week is my pace</div>
+          </div>
+        </button>
+        <button class="ob-option" data-step="3" data-val="Occasionally"><span class="ob-option-emoji">🌙</span>
+          <div>
+            <div class="ob-option-text">Occasionally</div>
+            <div class="ob-option-sub">Low-maintenance only</div>
+          </div>
+        </button>
+      </div>
+      <div class="ob-error hidden" id="err-3"></div>
+      <div class="ob-footer">
+        <button class="ob-back-btn" id="back-3">← Back</button>
+        <button class="ob-next-btn" id="next-3">Continue →</button>
+      </div>
+    </div>
+
+    <!-- STEP 5: Goal -->
+    <div class="ob-step" id="step-4">
+      <div class="ob-step-label">Step 5 of 5</div>
+      <h1 class="ob-title">What's your main goal?</h1>
+      <p class="ob-sub">This shapes your personalized dashboard experience.</p>
+      <div class="ob-options">
+        <button class="ob-option" data-step="4" data-val="Keep plants healthy"><span class="ob-option-emoji">💚</span>
+          <div>
+            <div class="ob-option-text">Keep plants healthy</div>
+            <div class="ob-option-sub">Care tracking & alerts</div>
+          </div>
+        </button>
+        <button class="ob-option" data-step="4" data-val="Learn gardening"><span class="ob-option-emoji">📚</span>
+          <div>
+            <div class="ob-option-text">Learn gardening</div>
+            <div class="ob-option-sub">Tips and guides</div>
+          </div>
+        </button>
+        <button class="ob-option" data-step="4" data-val="Grow food"><span class="ob-option-emoji">🥬</span>
+          <div>
+            <div class="ob-option-text">Grow my own food</div>
+            <div class="ob-option-sub">Vegetables & herbs</div>
+          </div>
+        </button>
+        <button class="ob-option" data-step="4" data-val="Decorate home"><span class="ob-option-emoji">🏡</span>
+          <div>
+            <div class="ob-option-text">Decorate my home</div>
+            <div class="ob-option-sub">Beautiful indoor plants</div>
+          </div>
+        </button>
+      </div>
+      <div class="ob-error hidden" id="err-4"></div>
+      <div class="ob-footer">
+        <button class="ob-back-btn" id="back-4">← Back</button>
+        <button class="ob-next-btn" id="finish-btn">🌱 Let's Grow!</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // ONBOARDING PAGE LOGIC
+    (function() {
+      const user = JSON.parse(localStorage.getItem("user"));
+      const isNewUser = localStorage.getItem("isNewUser") === "true";
+      console.log("User:", localStorage.getItem("user"));
+      console.log("isNewUser:", localStorage.getItem("isNewUser"));
+
+      if (!user) {
+        window.location.href = "/login";
+        return;
+      }
+      if (!isNewUser) {
+        window.location.href = "/dashboard";
+        return;
+      }
+    })();
+
+    const TOTAL_STEPS = 5;
+    let currentStep = 0;
+    const answers = {};
+
+    // Option selection
+    document.querySelectorAll(".ob-option").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const step = btn.dataset.step;
+        document.querySelectorAll(`.ob-option[data-step="${step}"]`).forEach(b => b.classList.remove("selected"));
+        btn.classList.add("selected");
+        answers[step] = btn.dataset.val;
+      });
+    });
+
+    // Progress update
+    function updateProgress(step) {
+      for (let i = 0; i < TOTAL_STEPS; i++) {
+        const pb = document.getElementById(`pb${i}`);
+        if (!pb) continue;
+        pb.className = "ob-progress-bar";
+        if (i < step) pb.classList.add("done");
+        else if (i === step) pb.classList.add("active");
+      }
+    }
+
+    function showStep(n) {
+      document.querySelectorAll(".ob-step").forEach((s, i) => s.classList.toggle("active", i === n));
+      updateProgress(n);
+      currentStep = n;
+    }
+
+    function nextStep(n) {
+      if (!answers[n]) {
+        const err = document.getElementById(`err-${n}`);
+        if (err) { err.textContent = "Please select an option to continue"; err.classList.remove("hidden"); }
+        return;
+      }
+      document.getElementById(`err-${n}`)?.classList.add("hidden");
+      showStep(n + 1);
+    }
+
+    // Wire buttons
+    for (let i = 0; i < TOTAL_STEPS - 1; i++) {
+      document.getElementById(`next-${i}`)?.addEventListener("click", () => nextStep(i));
+      document.getElementById(`back-${i + 1}`)?.addEventListener("click", () => showStep(i));
+    }
+
+    // Finish
+    document.getElementById("finish-btn")?.addEventListener("click", async () => {
+      if (!answers[4]) {
+        document.getElementById("err-4").textContent = "Please select an option to continue";
+        document.getElementById("err-4").classList.remove("hidden");
+        return;
+      }
+
+      const btn = document.getElementById("finish-btn");
+      btn.textContent = "Setting up your garden...";
+      btn.disabled = true;
+
+      try {
+        const res = await fetch("/api/user/onboard", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ answers })
+        });
+        const data = await res.json();
+
+        // Update stored user level
+        const user = JSON.parse(localStorage.getItem("user") || "{}");
+        if (data.level) user.level = data.level;
+        localStorage.setItem("user", JSON.stringify(user));
+        
+        /* Mark as NOT NEW so dashboard allows access */
+        localStorage.setItem("isNewUser", "false");
+
+        window.location.href = "/dashboard";
+      } catch (e) {
+        btn.textContent = "🌱 Let's Grow!";
+        btn.disabled = false;
+        document.getElementById("err-4").textContent = "Failed to save. Please try again.";
+        document.getElementById("err-4").classList.remove("hidden");
+      }
+    });
+  </script>
+</body>
+
+</html>

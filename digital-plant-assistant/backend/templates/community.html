@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+{% block title %}Community – GrowZen{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/community.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/weather-widget.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="community-page">
+
+    <!-- PAGE HEADER -->
+    <div class="page-header" style="margin-bottom:24px;">
+        <div>
+            <h1 class="page-title">Community</h1>
+            <p class="page-sub">Share your garden, connect with growers, and climb the leaderboard</p>
+        </div>
+    </div>
+
+    <!-- TABS: Feed / Leaderboard -->
+    <div class="community-tabs-bar">
+        <button class="ctab active" data-tab="feed">💬 Feed</button>
+        <button class="ctab" data-tab="leaderboard">🏆 Leaderboard</button>
+    </div>
+
+    <!-- FEED PANEL -->
+    <div class="ctab-panel active" id="ctab-feed">
+        <div class="community-layout">
+            <!-- CREATE POST -->
+            <div class="community-main">
+                <div class="post-composer">
+                    <div class="composer-avatar">🌱</div>
+                    <div class="composer-body">
+                        <textarea id="postContent" class="form-textarea composer-textarea"
+                            placeholder="Share your plant story, tip, or question..." rows="3"></textarea>
+                        <!-- Photo preview shown after file select -->
+                        <img id="photoPreview" src="" alt="Photo preview"
+                            style="display:none; max-width:100%; max-height:220px; object-fit:cover; border-radius:10px; margin-top:10px; border:1px solid var(--gray-200);">
+                        <div class="composer-actions">
+                            <button class="btn btn-ghost btn-sm" id="addPhotoBtn">📷 Add Photo</button>
+                            <input type="file" id="photoInput" hidden accept="image/*">
+                            <button class="btn btn-primary btn-sm" id="submitPostBtn">Share Post</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FEED -->
+                <div class="community-feed" id="communityFeed">
+                    <div class="loading-state" id="feedLoading">
+                        <div class="spinner"></div>
+                        <p>Loading community...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SIDEBAR -->
+            <div class="community-sidebar">
+                <!-- XP CARD -->
+                <div class="cs-widget">
+                    <div class="cs-widget-title">⚡ Your XP</div>
+                    <div id="myXpCard">
+                        <div class="xp-big" id="myXpVal">0 XP</div>
+                        <div class="xp-level" id="myLevel">🌱 Seedling</div>
+                        <div class="pqm-divider"
+                            style="background:var(--gray-100); height:1px; width:100%; margin:10px 0;"></div>
+                        <div class="xp-bar-wrap">
+                            <div class="xp-bar-fill" id="myXpBar" style="width:0%"></div>
+                        </div>
+                        <div class="xp-next-label" id="myNextLevel">Next: 🌿 Sprout</div>
+                    </div>
+                </div>
+
+                <!-- MINI-LEADERBOARD PREVIEW -->
+                <div class="cs-widget" id="miniLeaderboard">
+                    <div class="cs-widget-title">🏆 Top Growers</div>
+                    <div id="miniLbList"></div>
+                    <button class="btn btn-ghost btn-sm" style="width:100%; justify-content:center; margin-top:10px;"
+                        onclick="switchCommunityTab('leaderboard')">View Full Leaderboard →</button>
+                </div>
+
+                <!-- ACTIVE CHALLENGES -->
+                <div class="cs-widget">
+                    <div class="cs-widget-title">🎯 Weekly Challenges</div>
+                    <div class="challenge-list">
+                        <div class="challenge-item">
+                            <div class="challenge-icon">📸</div>
+                            <div>
+                                <div class="challenge-name">Photo Tracker</div>
+                                <div class="challenge-sub">Upload 1 weekly photo</div>
+                            </div>
+                            <span class="badge badge-green">+20 XP</span>
+                        </div>
+                        <div class="challenge-item">
+                            <div class="challenge-icon">💧</div>
+                            <div>
+                                <div class="challenge-name">Water Streak</div>
+                                <div class="challenge-sub">Water plants 5 days in a row</div>
+                            </div>
+                            <span class="badge badge-green">+30 XP</span>
+                        </div>
+                        <div class="challenge-item">
+                            <div class="challenge-icon">💬</div>
+                            <div>
+                                <div class="challenge-name">Community Post</div>
+                                <div class="challenge-sub">Share 1 post this week</div>
+                            </div>
+                            <span class="badge badge-green">+10 XP</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- LEADERBOARD PANEL -->
+    <div class="ctab-panel" id="ctab-leaderboard">
+        <div class="leaderboard-section">
+            <div class="leaderboard-header">
+                <h2>🏆 Top Plant Growers</h2>
+                <div class="lb-filter-tabs">
+                    <button class="lb-filter-btn active" data-period="all">All Time</button>
+                    <button class="lb-filter-btn" data-period="monthly">Monthly</button>
+                    <button class="lb-filter-btn" data-period="weekly">Weekly</button>
+                </div>
+            </div>
+
+            <!-- LOADING -->
+            <div id="lbLoading" style="text-align:center; padding:40px; color:var(--gray-400);">
+                <div class="spinner" style="margin:0 auto 12px;"></div>
+                Loading leaderboard...
+            </div>
+
+            <!-- TOP 3 PODIUM -->
+            <div class="lb-podium" id="lbPodium" style="display:none;"></div>
+
+            <!-- RANKED LIST (4+) -->
+            <div class="lb-list" id="lbList" style="display:none;"></div>
+
+            <!-- EMPTY -->
+            <div id="lbEmpty" style="display:none; text-align:center; padding:60px; color:var(--gray-400);">
+                <div style="font-size:40px; margin-bottom:12px;">🌱</div>
+                <p>Be the first on the leaderboard! Start adding plants to earn XP.</p>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- IMAGE EXPANSION MODAL -->
+<div id="imageModal" class="image-modal hidden" onclick="this.classList.add('hidden')">
+    <img id="modalImg" class="modal-full-img" src="" alt="Full view">
+</div>
+
+<div id="toast" class="toast hidden"></div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/community.js') }}"></script>
+{% endblock %}
